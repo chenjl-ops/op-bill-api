@@ -24,4 +24,6 @@ type Specification struct {
 	CmdbEcsUrl           string `envconfig:"CMDB_ECS_URL" mapstructure:"cmdb_ecs_url"`
 	CmdbVolumeUrl        string `envconfig:"CMDB_VOLUME_URL" mapstructure:"cmdb_volume_url"`
 	CmdbAppInstanceUrl   string `envconfig:"CMDB_APP_INSTANCE_URL" mapstructure:"cmdb_app_instance_url"`
+	AppInfoUrl           string `envconfig:"APP_INFO_URL" mapstructure:"app_info_url"`
+	DependentName        string `envconfig:"DEPENDENT_NAME" mapstructure:"dependent_name"`
 }

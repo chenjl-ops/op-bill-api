@@ -21,6 +21,7 @@ type Apps struct {
 // ecs data数据结构
 type EcsData struct {
 	Env          string `json:"env"`
+	Ip           string `json:"privateIp"`
 	InstanceId   string `json:"instanceId"`
 	InstanceName string `json:"instanceName"`
 	Status       string `json:"status"`
@@ -85,4 +86,15 @@ type Volumes struct {
 type Volume struct {
 	Code int     `json:"code"`
 	Data Volumes `json:"data"`
+}
+
+// appInfo 应用相关性数据
+type AppInfoData struct {
+	DependentName string `json:"dependent_name"`
+	AppName       string `json:"app_name"`
+}
+
+type AppInfo struct {
+	Code int           `json:"code"`
+	Data []AppInfoData `json:"data"`
 }

@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"fmt"
 	"github.com/Sirupsen/logrus"
 	"op-bill-api/internal/pkg/apollo"
 	"op-bill-api/internal/pkg/requests"
@@ -39,12 +40,23 @@ func GetVolumeData() Volume {
 }
 
 // 获取应用对应instance数据接口
-func GetAppInstanceData() Instance {
+func GetAppInstanceData(appName string, ch chan<- Instance) {
 	var data Instance
-	err := requests.Request(apollo.Config.CmdbAppInstanceUrl, &data)
+	url := fmt.Sprintf(apollo.Config.CmdbAppInstanceUrl, appName)
+
+	err := requests.Request(url, &data)
+	if err != nil {
+		logrus.Println(err)
+	}
+	ch <- data
+}
+
+// 获取所有appInfo数据  应用强相关数据
+func GetAppInfoData() AppInfo {
+	var data AppInfo
+	err := requests.Request(apollo.Config.AppInfoUrl, &data)
 	if err != nil {
 		logrus.Println(err)
 	}
 	return data
 }
-
