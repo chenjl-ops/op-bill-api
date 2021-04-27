@@ -60,3 +60,17 @@ func GetAppInfoData() AppInfo {
 	}
 	return data
 }
+
+// 判断元素是否在数组内
+//func IsContains(s interface{}, l interface{}) bool {
+//	typeOfS := reflect.TypeOf(s)
+//
+//	t := typeOfS.Kind()
+//	t.String()
+//	if v, ok := l.([]t) {
+//
+//	}
+//	typeOfL := reflect.TypeOf(l)
+//
+//
+//}

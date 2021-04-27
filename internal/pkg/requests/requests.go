@@ -33,6 +33,8 @@ fmt.Println(data)
 */
 func Request(url string, data interface{}) error {
 	resp, err := http.Get(url)
+
+	//logrus.Println("请求地址: ", url)
 	if err != nil {
 		logrus.Println("请求失败: ", err)
 		return err
