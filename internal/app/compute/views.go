@@ -2,75 +2,63 @@ package compute
 
 import (
 	"fmt"
-	"github.com/Sirupsen/logrus"
-	"op-bill-api/internal/pkg/apollo"
-	"op-bill-api/internal/pkg/requests"
+	"github.com/gin-gonic/gin"
+	"op-bill-api/internal/pkg/baiducloud"
+	"strconv"
 )
 
-// 请求各种接口获取需要接口数据
 
-// 请求CMDB获取所有APP
-func GetAllApplications() Apps {
-	var data Apps
-	err := requests.Request(apollo.Config.CmdbAppUrl, &data)
-	if err != nil {
-		logrus.Println(err)
+
+func GetBilling(c *gin.Context) {
+	month := c.DefaultQuery("month", "")
+	isShare, _ := strconv.ParseBool(c.Query("isShare"))
+	if month == "" {
+		c.JSON(500, gin.H{
+			"msg": "parameter month not none",
+		})
+	} else {
+		cost, nonCost, otherCost, allCost, err := ComputerBilling(month, isShare)
+		if err != nil {
+			c.JSON(500, gin.H{
+				"msg": err,
+			})
+		} else {
+			c.JSON(200, gin.H{
+				"msg": "success",
+				//"data": data,
+				"cost":      cost,
+				"nonCost":   nonCost,
+				"otherCost": otherCost,
+				"allCost":   allCost,
+			})
+		}
 	}
-	return data
+
 }
 
-// 获取CMDB ecs 数据集合 参数可控
-func GetEcsData() Ecs {
-	var data Ecs
-	err := requests.Request(apollo.Config.CmdbAppUrl, &data)
-	if err != nil {
-		logrus.Println(err)
+func TestBaiduBill(c *gin.Context) {
+	url := "https://billing.baidubce.com/v1/bill/resource/month?month=%s&productType=%s&pageNo=%s&pageSize=%s"
+	headers := map[string]string{
+		"Host":         "billing.baidubce.com",
+		"Content-Type": "application/json",
 	}
-	return data
+
+	bc := baiducloud.NewBaiduCloud(fmt.Sprintf(url, "2021-03", "prepay", "1", "100"), headers, "GET")
+
+	data := map[string]interface{}{}
+	result := new(interface{})
+	err := bc.Request(data, &result)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"error": err,
+		})
+	} else {
+		c.JSON(200, gin.H{
+			"msg":       "success",
+			"data":      result,
+			"Signature": bc.GetAuthorization(),
+		})
+	}
+
 }
 
-// 获取volume数据结合接口
-func GetVolumeData() Volume {
-	var data Volume
-	err := requests.Request(apollo.Config.CmdbVolumeUrl, &data)
-	if err != nil {
-		logrus.Println(err)
-	}
-	return data
-}
-
-// 获取应用对应instance数据接口
-func GetAppInstanceData(appName string, ch chan<- Instance) {
-	var data Instance
-	url := fmt.Sprintf(apollo.Config.CmdbAppInstanceUrl, appName)
-
-	err := requests.Request(url, &data)
-	if err != nil {
-		logrus.Println(err)
-	}
-	ch <- data
-}
-
-// 获取所有appInfo数据  应用强相关数据
-func GetAppInfoData() AppInfo {
-	var data AppInfo
-	err := requests.Request(apollo.Config.AppInfoUrl, &data)
-	if err != nil {
-		logrus.Println(err)
-	}
-	return data
-}
-
-// 判断元素是否在数组内
-//func IsContains(s interface{}, l interface{}) bool {
-//	typeOfS := reflect.TypeOf(s)
-//
-//	t := typeOfS.Kind()
-//	t.String()
-//	if v, ok := l.([]t) {
-//
-//	}
-//	typeOfL := reflect.TypeOf(l)
-//
-//
-//}

@@ -12,5 +12,6 @@ func Url(r *gin.Engine) {
 		v1.GET("insert_bill_data", insertData)
 		v1.GET("get_month_data", getMonthData)
 		v1.GET("get_bill_data", compute.GetBilling)
+		v1.GET("test_baidu_bill", compute.TestBaiduBill)
 	}
 }

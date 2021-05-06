@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/Sirupsen/logrus"
+	"github.com/gin-gonic/gin"
 	"github.com/mitchellh/mapstructure"
 	"io"
 	"net/http"
@@ -12,48 +13,58 @@ import (
 	"op-bill-api/internal/pkg/mysql"
 	"os"
 	"strings"
-	"time"
 )
 
 const (
 	timeFormat = "2006-01-02"
 )
 
-// 获取月第一天和最后一天
-// 获取月第一天 shift为偏移量 正为下月 负为上月
-func getMonthFirstDate(t time.Time, shift int) string {
-	t = t.AddDate(0, shift, -t.Day()+1)
-	return t.Format(timeFormat)
-
+// 创建数据表
+func createTable(c *gin.Context) {
+	err := mysql.Engine.Sync2(new(config.ShareBill), new(config.SourceBill), new(config.BillStatus))
+	if err != nil {
+		c.JSON(500, gin.H{
+			"msg":   "failed",
+			"error": err,
+		})
+	} else {
+		c.JSON(200, gin.H{
+			"msg": "success",
+		})
+	}
 }
 
-// 获取月最后一天 shift为偏移量 正为下月 负为上月
-func getMonthLastDate(t time.Time, shift int) string {
-	t = t.AddDate(0, shift, -t.Day())
-	return t.Format(timeFormat)
+// 账单数据录入
+func insertData(c *gin.Context) {
+	err := getBillExcel()
+	if err != nil {
+		c.JSON(500, gin.H{
+			"msg":   "failed",
+			"error": err,
+		})
+	} else {
+		c.JSON(200, gin.H{
+			"msg": "success",
+		})
+	}
 }
 
-// 获取月第一天和最后一天
-func getMonthDate() map[string]string {
-	data := make(map[string]string)
-
-	t := time.Now()
-	data["thisMonthFirstDate"] = getMonthFirstDate(t, 0)  // 本月第一天
-	data["thisMonthLastDate"] = getMonthLastDate(t, 1)    // 本月最后一天
-	data["lastMonthFirstDate"] = getMonthFirstDate(t, -1) //上月第一天
-	data["lastMonthLastDate"] = getMonthLastDate(t, 0)    //上月最后一天
-
-	return data
+// 查看月首尾日期
+func getMonthData(c *gin.Context) {
+	data := GetMonthDate()
+	c.JSON(200, gin.H{
+		"data": data,
+	})
 }
 
 // 获取账单
 func getBillExcel() error {
-	monthDateData := getMonthDate()
+	monthDateData := GetMonthDate()
 
 	// 账单地址
 	// TODO 未来可以apollo管理账单地址，非硬编码
-	shareBillUrl := fmt.Sprintf("https://test-public-cn.bj.bcebos.com/bill/%s_share_bill.xlsx", monthDateData["lastMonthFirstDate"])
-	sourceBillUrl := fmt.Sprintf("https://test-public-cn.bj.bcebos.com/bill/%s_%s_resource_bill.xlsx", monthDateData["lastMonthFirstDate"], monthDateData["lastMonthLastDate"])
+	shareBillUrl := fmt.Sprintf(apollo.Config.ShareBillUrl, monthDateData["lastMonthFirstDate"])
+	sourceBillUrl := fmt.Sprintf(apollo.Config.SourceBillUrl, monthDateData["lastMonthFirstDate"], monthDateData["lastMonthLastDate"])
 
 	// 获取月 相关文件名称数据
 	shareFileArray := strings.Split(shareBillUrl, "/")
@@ -121,7 +132,7 @@ func downloadFile(url string, filename string) string {
 
 // 读取excel文件获取相关数据
 func readExcel(filename string, isShare bool) (excelData []map[string]string, err error) {
-	monthDateData := getMonthDate()
+	monthDateData := GetMonthDate()
 	// fmt.Println(filename)
 	f, err := excelize.OpenFile(filename)
 	if err != nil {
@@ -169,6 +180,7 @@ func insertBillData(data []map[string]string, isShare bool, filename string) err
 		logrus.Println("账单文件已经写入: ", filename)
 	} else {
 		// 存储账单录入记录
+		logrus.Println("账单文件开始写入: ", filename)
 		billStatus := config.BillStatus{FileName: filename, Status: true}
 		_, err := mysql.Engine.Insert(&billStatus)
 		if err != nil {
@@ -225,6 +237,7 @@ func insertBillData(data []map[string]string, isShare bool, filename string) err
 			//	return err
 			//}
 		}
+		logrus.Println("账单文件写入完成: ", filename)
 	}
 	return nil
 }

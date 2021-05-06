@@ -1,48 +1,76 @@
 package compute
 
 import (
+	"fmt"
 	"github.com/Sirupsen/logrus"
-	"github.com/gin-gonic/gin"
 	"github.com/thoas/go-funk"
 	"op-bill-api/internal/app/middleware/logger"
 	"op-bill-api/internal/pkg/apollo"
 	"op-bill-api/internal/pkg/config"
 	"op-bill-api/internal/pkg/mysql"
+	"op-bill-api/internal/pkg/requests"
 	"strconv"
 )
 
-func GetBilling(c *gin.Context) {
-	month := c.DefaultQuery("month", "")
-	isShare, _ := strconv.ParseBool(c.Query("isShare"))
-	if month == "" {
-		c.JSON(500, gin.H{
-			"msg": "parameter month not none",
-		})
-	} else {
-		cost, nonCost, otherCost, allCost, err := ComputerBilling(month, isShare)
-		if err != nil {
-			c.JSON(500, gin.H{
-				"msg": err,
-			})
-		} else {
-			c.JSON(200, gin.H{
-				"msg": "success",
-				//"data": data,
-				"cost":      cost,
-				"nonCost":   nonCost,
-				"otherCost": otherCost,
-				"allCost":   allCost,
-			})
-		}
-	}
 
+// 请求各种接口获取需要接口数据
+
+// 请求CMDB获取所有APP
+func GetAllApplications() Apps {
+	var data Apps
+	err := requests.Request(apollo.Config.CmdbAppUrl, &data)
+	if err != nil {
+		logrus.Println(err)
+	}
+	return data
+}
+
+// 获取CMDB ecs 数据集合 参数可控
+func GetEcsData() Ecs {
+	var data Ecs
+	err := requests.Request(apollo.Config.CmdbAppUrl, &data)
+	if err != nil {
+		logrus.Println(err)
+	}
+	return data
+}
+
+// 获取volume数据结合接口
+func GetVolumeData() Volume {
+	var data Volume
+	err := requests.Request(apollo.Config.CmdbVolumeUrl, &data)
+	if err != nil {
+		logrus.Println(err)
+	}
+	return data
+}
+
+// 获取应用对应instance数据接口
+func GetAppInstanceData(appName string, ch chan<- Instance) {
+	var data Instance
+	url := fmt.Sprintf(apollo.Config.CmdbAppInstanceUrl, appName)
+
+	err := requests.Request(url, &data)
+	if err != nil {
+		logrus.Println(err)
+	}
+	ch <- data
+}
+
+// 获取所有appInfo数据  应用强相关数据
+func GetAppInfoData() AppInfo {
+	var data AppInfo
+	err := requests.Request(apollo.Config.AppInfoUrl, &data)
+	if err != nil {
+		logrus.Println(err)
+	}
+	return data
 }
 
 // 计算决算数据
 func ComputerBilling(month string, isShare bool) (c float64, nc float64, oc float64, ac float64, err error) {
 	// 获取数据库所有配置
 	logrus.Println("isShare", isShare)
-
 
 	billData := make([]config.ShareBill, 0)
 	if err := mysql.Engine.Where("month = ?", month).Find(&billData); err != nil {
@@ -76,7 +104,7 @@ func ComputerBilling(month string, isShare bool) (c float64, nc float64, oc floa
 
 	logrus.Println("数据处理开始: ")
 
-	// 处理bcc ip和instanceid对应关系
+	// 处理bcc ip和instanceId对应关系
 	bccIdIpData := make(map[string]string)
 	for _, ecs := range ecss.Data {
 		if ecs.Status == "Running" && ecs.Env == "Prod" {

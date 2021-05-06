@@ -1,45 +1,34 @@
 package billing
 
 import (
-	"github.com/gin-gonic/gin"
-	"op-bill-api/internal/pkg/config"
-	"op-bill-api/internal/pkg/mysql"
+	"time"
 )
 
-// 创建数据表
-func createTable(c *gin.Context) {
-	err := mysql.Engine.Sync2(new(config.ShareBill), new(config.SourceBill), new(config.BillStatus))
-	if err != nil {
-		c.JSON(500, gin.H{
-			"msg":   "failed",
-			"error": err,
-		})
-	} else {
-		c.JSON(200, gin.H{
-			"msg": "success",
-		})
-	}
+// 获取月第一天和最后一天
+// 获取月第一天 shift为偏移量 正为下月 负为上月
+func GetMonthFirstDate(t time.Time, shift int) string {
+	t = t.AddDate(0, shift, -t.Day()+1)
+	return t.Format(timeFormat)
+
 }
 
-// 账单数据录入
-func insertData(c *gin.Context) {
-	err := getBillExcel()
-	if err != nil {
-		c.JSON(500, gin.H{
-			"msg":   "failed",
-			"error": err,
-		})
-	} else {
-		c.JSON(200, gin.H{
-			"msg": "success",
-		})
-	}
+// 获取月最后一天 shift为偏移量 正为下月 负为上月
+func GetMonthLastDate(t time.Time, shift int) string {
+	t = t.AddDate(0, shift, -t.Day())
+	return t.Format(timeFormat)
 }
 
-// 查看月首尾日期
-func getMonthData(c *gin.Context) {
-	data := getMonthDate()
-	c.JSON(200, gin.H{
-		"data": data,
-	})
+// 获取月第一天和最后一天
+func GetMonthDate() map[string]string {
+	data := make(map[string]string)
+
+	t := time.Now()
+	data["thisMonthFirstDate"] = GetMonthFirstDate(t, 0)  // 本月第一天
+	data["thisMonthLastDate"] = GetMonthLastDate(t, 1)    // 本月最后一天
+	data["lastMonthFirstDate"] = GetMonthFirstDate(t, -1) //上月第一天
+	data["lastMonthLastDate"] = GetMonthLastDate(t, 0)    //上月最后一天
+
+	return data
 }
+
+

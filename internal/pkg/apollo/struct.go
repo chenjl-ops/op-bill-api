@@ -11,6 +11,8 @@ type Apollo struct {
 //apollo内容配置
 type Specification struct {
 	// ServerRunPort        string `envconfig:"SERVER_RUN_PORT" mapstructure:"server_run_port"`
+	BaiduAccessKeyID     string `envconfig:"BAIDU_ACCESS_KEY_ID" mapstructure:"baidu_access_key_id"`
+	BaiduAccessKeySecret string `envconfig:"BAIDU_ACCESS_KEY_SECRET" mapstructure:"baidu_access_key_secret"`
 	InsertMysqlSum       int    `envconfig:"INSERT_MYSQL_SUM" mapstructure:"insert_mysql_sum"`
 	MysqlUserName        string `envconfig:"MYSQL_USERNAME" mapstructure:"mysql_db_user"`
 	MysqlPassword        string `envconfig:"MYSQL_PASSWORD" mapstructure:"mysql_db_passwd"`
@@ -26,4 +28,6 @@ type Specification struct {
 	CmdbAppInstanceUrl   string `envconfig:"CMDB_APP_INSTANCE_URL" mapstructure:"cmdb_app_instance_url"`
 	AppInfoUrl           string `envconfig:"APP_INFO_URL" mapstructure:"app_info_url"`
 	DependentName        string `envconfig:"DEPENDENT_NAME" mapstructure:"dependent_name"`
+	ShareBillUrl         string `envconfig:"SHARE_BILL_URL" mapstructure:"share_bill_url"`
+	SourceBillUrl        string `envconfig:"SOURCE_BILL_URL" mapstructure:"source_bill_url"`
 }

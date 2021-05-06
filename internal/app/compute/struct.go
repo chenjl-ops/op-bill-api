@@ -98,3 +98,4 @@ type AppInfo struct {
 	Code int           `json:"code"`
 	Data []AppInfoData `json:"data"`
 }
+
