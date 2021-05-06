@@ -116,7 +116,7 @@ func downloadFile(url string, filename string) string {
 	}
 	defer resp.Body.Close()
 
-	fileFullName := fmt.Sprintf("/tmp/%s", filename)
+	fileFullName := fmt.Sprintf(apollo.Config.DownloadPath, filename)
 	out, err := os.Create(fileFullName)
 	if err != nil {
 		logrus.Error("创建本地目录文件失败: ", err)

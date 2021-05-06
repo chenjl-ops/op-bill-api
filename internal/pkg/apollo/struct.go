@@ -30,4 +30,5 @@ type Specification struct {
 	DependentName        string `envconfig:"DEPENDENT_NAME" mapstructure:"dependent_name"`
 	ShareBillUrl         string `envconfig:"SHARE_BILL_URL" mapstructure:"share_bill_url"`
 	SourceBillUrl        string `envconfig:"SOURCE_BILL_URL" mapstructure:"source_bill_url"`
+	DownloadPath         string `envconfig:"DOWNLOAD_PATH" mapstructure:"download_path"`
 }
