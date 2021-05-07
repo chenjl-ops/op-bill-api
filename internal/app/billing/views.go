@@ -51,9 +51,9 @@ func insertData(c *gin.Context) {
 
 // 查看月首尾日期
 func getMonthData(c *gin.Context) {
-	data := GetMonthDate()
+	dateData := GetMonthDate()
 	c.JSON(200, gin.H{
-		"data": data,
+		"data": dateData,
 	})
 }
 
@@ -251,7 +251,7 @@ func checkInsertMonthData(filename string) bool {
 }
 
 // 自定义获取账单周期
-// TODO 1、后续可有apollo配置周期
+// TODO 1、后续可由apollo配置周期
 //func JobService() error {
 //	c := cron.New()
 //	_, err := c.AddFunc("@monthly", getBillExcel)
