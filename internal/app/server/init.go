@@ -7,6 +7,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"op-bill-api/internal/app/billing"
 	"op-bill-api/internal/app/budget"
+	"op-bill-api/internal/app/compute"
 	"op-bill-api/internal/app/middleware/logger"
 	"op-bill-api/internal/app/test"
 	"op-bill-api/internal/pkg/apollo"
@@ -65,6 +66,7 @@ func (s *server) InitRouter() *gin.Engine {
 	test.Url(s.App)
 	billing.Url(s.App) // 决算
 	budget.Url(s.App) // 预算
+	compute.Url(s.App)
 	return s.App
 }
 

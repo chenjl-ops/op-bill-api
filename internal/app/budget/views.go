@@ -11,7 +11,6 @@ import (
 	"time"
 )
 
-
 func getBaiduBillEveryDayData() error {
 	dateData := billing.GetMonthDate()
 	// 默认偏移量为1天
@@ -23,7 +22,7 @@ func getBaiduBillEveryDayData() error {
 	}
 
 	startTime := dateData["thisMonthFirstDate"]
-	tShift, _ := time.ParseDuration(fmt.Sprintf("%dh", -shift * 24))
+	tShift, _ := time.ParseDuration(fmt.Sprintf("%dh", -shift*24))
 	EndTime := now.Add(tShift)
 	endTime := EndTime.Format("2006-01-02")
 
@@ -34,7 +33,10 @@ func getBaiduBillEveryDayData() error {
 	}
 	// 计费类型：prepay/ postpay，分别表示预付费/后付费
 	productType := [2]string{"prepay", "postpay"}
+	// productType := [1]string{"prepay"}
 	pageSize := 100
+
+	billData := make([]BaiduBillData, 0)
 
 	for _, v := range productType {
 		logrus.Println("数据处理开始: ", fmt.Sprintf(url, startTime, endTime, v, 1, pageSize))
@@ -50,18 +52,18 @@ func getBaiduBillEveryDayData() error {
 			for i := 0; i <= nu; i++ {
 				go getBaiduBillData(startTime, endTime, v, i, pageSize, billCh)
 			}
-			// 入库
-			billData := make([]BaiduBillData, 0)
-			for i := 0; i<= nu; i++ {
-				responseData := <- billCh
+			for i := 0; i <= nu; i++ {
+				responseData := <-billCh
 				billData = append(billData, responseData.Bills...)
 			}
-			err := insertBillData(billData)
-			if err != nil {
-				logrus.Println("Bill Data 入库异常: ", err)
-				return err
-			}
 		}
+	}
+
+	// 入库
+	err := insertBillData(billData)
+	if err != nil {
+		logrus.Println("Bill Data 入库异常: ", err)
+		return err
 	}
 	return nil
 }
@@ -127,7 +129,7 @@ func insertBaiduBillData(c *gin.Context) {
 	err := getBaiduBillEveryDayData()
 	if err != nil {
 		c.JSON(500, gin.H{
-			"msg": "failed",
+			"msg":   "failed",
 			"error": err,
 		})
 	} else {

@@ -33,7 +33,20 @@ func GetBilling(c *gin.Context) {
 			})
 		}
 	}
+}
 
+func GetBudget(c *gin.Context) {
+	data, err := ComputerBudget()
+	if err != nil {
+		c.JSON(500, gin.H{
+			"msg": err,
+		})
+	} else {
+		c.JSON(200, gin.H{
+			"msg": "success",
+			"data": data,
+		})
+	}
 }
 
 func TestBaiduBill(c *gin.Context) {

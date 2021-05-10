@@ -4,12 +4,16 @@ import (
 	"fmt"
 	"github.com/Sirupsen/logrus"
 	"github.com/thoas/go-funk"
+	"op-bill-api/internal/app/billing"
+	"op-bill-api/internal/app/budget"
 	"op-bill-api/internal/app/middleware/logger"
 	"op-bill-api/internal/pkg/apollo"
 	"op-bill-api/internal/pkg/config"
 	"op-bill-api/internal/pkg/mysql"
 	"op-bill-api/internal/pkg/requests"
 	"strconv"
+	"strings"
+	"time"
 )
 
 // 请求各种接口获取需要接口数据
@@ -237,10 +241,123 @@ func ComputerBilling(month string, isShare bool) (c float64, nc float64, oc floa
 }
 
 // 计算预测数据
-func ComputerBudget() {
-	sourceData := make([]config.SourceBill, 0)
+func ComputerBudget() (map[string]map[string]float64, error) {
+	logrus.Println("开始...")
+	dateData := billing.GetMonthDate()
 
-	if err := mysql.Engine.Find(&sourceData); err != nil {
-		logger.Log.Error("查询数据异常: ", err)
+	shift := 1
+	now := time.Now()
+	// 为了保证数据计算，百度建议10点以后 10点之前取两天前数据
+	if now.Hour() < 10 {
+		shift = 2
 	}
+
+	thisMonthL := strings.Split(dateData["thisMonthLastDate"], "-")
+	thisMonthTotal, err := strconv.Atoi(thisMonthL[len(thisMonthL)-1])
+	if err != nil {
+		logrus.Println("获取月最后一天数据转换失败: ", err)
+	}
+	tShift, _ := time.ParseDuration(fmt.Sprintf("%dh", -shift*24))
+	EndTime := now.Add(tShift)
+
+	logrus.Println("日期: ", thisMonthTotal, EndTime.Day())
+
+	billDataMap := map[string]map[string]string{
+		"视频创作分发平台":      {"name": "VOD", "type": "source"},
+		"内容分发网络 CDN":    {"name": "CDN", "type": "source"},
+		"函数计算 CFC":      {"name": "CFC", "type": "source"},
+		"云数据库RDS":       {"name": "RDS", "type": "share"},
+		"对象存储 BOS":      {"name": "BOS", "type": "source"},
+		"Elasticsearch": {"name": "BES", "type": "source"},
+	}
+
+	thisMonthBudgetData := make(map[string]map[string]float64)
+	for k, v := range billDataMap {
+		logrus.Println("处理中...", k, v)
+
+		// 获取目前消费总金额
+		billData, err := budget.GetQueryBaiduBillData(v["name"])
+		if err != nil {
+			return nil, err
+		}
+
+		// 当月已产生金额总和
+		financePriceTotal := 0.00
+		for _, bill := range billData {
+			financePriceTotal = financePriceTotal + bill.FinancePrice
+		}
+		logrus.Println("当月产生金额总和: ", financePriceTotal)
+
+		// 查询上个月消费总和
+		lastMonthCostSum := 0.00
+		sourceMonth := fmt.Sprintf("%s_%s", dateData["lastMonthFirstDate"], dateData["lastMonthLastDate"])
+
+		// 当月应付金额总和 和 新增金额
+		thisMonthFinancePriceTotal := 0.00
+		thisMonthLastMonthAdd := 0.00
+
+		if v["type"] == "source" {
+			thisMonthFinancePriceTotal = financePriceTotal / (float64(EndTime.Day()) / float64(thisMonthTotal))
+
+			lastMonthSourceData, err := getLastMonthSourceCost(sourceMonth, k)
+			if err != nil {
+				return nil, err
+			}
+			for _, v := range lastMonthSourceData {
+				v1, err := strconv.ParseFloat(v.OrderCost, 64)
+				if err != nil {
+					return nil, err
+				}
+				lastMonthCostSum = lastMonthCostSum + v1
+			}
+			logrus.Println("上个月消费总和: ", lastMonthCostSum)
+
+			thisMonthLastMonthAdd = thisMonthFinancePriceTotal - lastMonthCostSum
+		} else {
+			thisMonthFinancePriceTotal = financePriceTotal / (float64(EndTime.Hour()) / float64(thisMonthTotal))
+
+			lastShareData, err := getLastMonthShareCost(strings.Replace(dateData["lastMonthFirstDate"], "-", "/", -1), k)
+			if err != nil {
+				return nil, err
+			}
+			for _, v := range lastShareData {
+				v1, err := strconv.ParseFloat(v.ShareCope, 64)
+				if err != nil {
+					return nil, err
+				}
+				lastMonthCostSum = lastMonthCostSum + v1
+			}
+			thisMonthLastMonthAdd = thisMonthFinancePriceTotal - lastMonthCostSum
+		}
+		fmt.Println(thisMonthFinancePriceTotal, thisMonthLastMonthAdd)
+		thisMonthBudgetData[k] = make(map[string]float64)
+		thisMonthBudgetData[k]["total"] = thisMonthFinancePriceTotal
+		thisMonthBudgetData[k]["add"] = thisMonthLastMonthAdd
+
+	}
+
+	logrus.Println("处理完成...", thisMonthBudgetData)
+	return thisMonthBudgetData, nil
+}
+
+// 获取上个月总和消费数据 资金口径
+func getLastMonthSourceCost(month string, query string) ([]config.SourceBill, error) {
+	sourceBillData := make([]config.SourceBill, 0)
+
+	if err := mysql.Engine.Where("product_name = ?", query).And("month = ?", month).Find(&sourceBillData); err != nil {
+		return nil, err
+	}
+
+	return sourceBillData, nil
+}
+
+// 获取上个月总和消费数据 分摊口径
+func getLastMonthShareCost(month string, query string) ([]config.ShareBill, error) {
+	shareBillData := make([]config.ShareBill, 0)
+
+	if err := mysql.Engine.Where("product_name = ?", query).And("month = ?", month).Find(&shareBillData); err != nil {
+		return nil, err
+	}
+
+	return shareBillData, nil
 }
