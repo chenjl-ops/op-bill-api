@@ -5,8 +5,8 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/thoas/go-funk"
 	"op-bill-api/internal/app/billing"
-	"op-bill-api/internal/app/budget"
 	"op-bill-api/internal/app/middleware/logger"
+	"op-bill-api/internal/app/prediction"
 	"op-bill-api/internal/pkg/apollo"
 	"op-bill-api/internal/pkg/config"
 	"op-bill-api/internal/pkg/mysql"
@@ -18,7 +18,7 @@ import (
 
 // 请求各种接口获取需要接口数据
 
-// 请求CMDB获取所有APP
+// GetAllApplications 请求CMDB获取所有APP
 func GetAllApplications() Apps {
 	var data Apps
 	err := requests.Request(apollo.Config.CmdbAppUrl, &data)
@@ -28,7 +28,7 @@ func GetAllApplications() Apps {
 	return data
 }
 
-// 获取CMDB ecs 数据集合 参数可控
+// GetEcsData 获取CMDB ecs 数据集合 参数可控
 func GetEcsData() Ecs {
 	var data Ecs
 	err := requests.Request(apollo.Config.CmdbAppUrl, &data)
@@ -38,7 +38,7 @@ func GetEcsData() Ecs {
 	return data
 }
 
-// 获取volume数据结合接口
+// GetVolumeData 获取volume数据结合接口
 func GetVolumeData() Volume {
 	var data Volume
 	err := requests.Request(apollo.Config.CmdbVolumeUrl, &data)
@@ -48,7 +48,7 @@ func GetVolumeData() Volume {
 	return data
 }
 
-// 获取应用对应instance数据接口
+// GetAppInstanceData 获取应用对应instance数据接口
 func GetAppInstanceData(appName string, ch chan<- Instance) {
 	var data Instance
 	url := fmt.Sprintf(apollo.Config.CmdbAppInstanceUrl, appName)
@@ -60,7 +60,7 @@ func GetAppInstanceData(appName string, ch chan<- Instance) {
 	ch <- data
 }
 
-// 获取所有appInfo数据  应用强相关数据
+// GetAppInfoData 获取所有appInfo数据  应用强相关数据
 func GetAppInfoData() AppInfo {
 	var data AppInfo
 	err := requests.Request(apollo.Config.AppInfoUrl, &data)
@@ -70,7 +70,7 @@ func GetAppInfoData() AppInfo {
 	return data
 }
 
-// 计算决算数据
+// ComputerBilling 计算决算数据
 func ComputerBilling(month string, isShare bool) (c float64, nc float64, oc float64, ac float64, err error) {
 	// 获取数据库所有配置
 	logrus.Println("isShare", isShare)
@@ -240,8 +240,8 @@ func ComputerBilling(month string, isShare bool) (c float64, nc float64, oc floa
 	return cost, nonCost, otherCost, allCost, nil
 }
 
-// 计算预测数据
-func ComputerBudget() (map[string]map[string]float64, error) {
+// ComputerPrediction 计算预测数据 后付费相关数据
+func ComputerPrediction() (map[string]map[string]map[string]float64, error) {
 	logrus.Println("开始...")
 	dateData := billing.GetMonthDate()
 
@@ -271,93 +271,78 @@ func ComputerBudget() (map[string]map[string]float64, error) {
 		"Elasticsearch": {"name": "BES", "type": "source"},
 	}
 
-	thisMonthBudgetData := make(map[string]map[string]float64)
-	for k, v := range billDataMap {
-		logrus.Println("处理中...", k, v)
+	thisMonthBudgetData := make(map[string]map[string]map[string]float64)
 
-		// 获取目前消费总金额
-		billData, err := budget.GetQueryBaiduBillData(v["name"])
-		if err != nil {
-			return nil, err
-		}
+	sellTypes := [2]string{"prepay", "postpay"}
 
-		// 当月已产生金额总和
-		financePriceTotal := 0.00
-		for _, bill := range billData {
-			financePriceTotal = financePriceTotal + bill.FinancePrice
-		}
-		logrus.Println("当月产生金额总和: ", financePriceTotal)
+	for _, sellType := range sellTypes {
+		thisMonthBudgetData[sellType] = make(map[string]map[string]float64)
+		for k, v := range billDataMap {
+			logrus.Println("处理中...", k, v)
 
-		// 查询上个月消费总和
-		lastMonthCostSum := 0.00
-		sourceMonth := fmt.Sprintf("%s_%s", dateData["lastMonthFirstDate"], dateData["lastMonthLastDate"])
-
-		// 当月应付金额总和 和 新增金额
-		thisMonthFinancePriceTotal := 0.00
-		thisMonthLastMonthAdd := 0.00
-
-		if v["type"] == "source" {
-			thisMonthFinancePriceTotal = financePriceTotal / (float64(EndTime.Day()) / float64(thisMonthTotal))
-
-			lastMonthSourceData, err := getLastMonthSourceCost(sourceMonth, k)
+			// 获取目前消费总金额
+			billData, err := prediction.GetQueryBaiduBillData(v["name"], sellType)
 			if err != nil {
 				return nil, err
 			}
-			for _, v := range lastMonthSourceData {
-				v1, err := strconv.ParseFloat(v.OrderCost, 64)
+
+			// 当月已产生金额总和
+			financePriceTotal := 0.00
+			for _, bill := range billData {
+				financePriceTotal = financePriceTotal + bill.FinancePrice
+			}
+			//logrus.Println("当月产生金额总和: ", financePriceTotal)
+
+			// 查询上个月消费总和
+			lastMonthCostSum := 0.00
+			sourceMonth := fmt.Sprintf("%s_%s", dateData["lastMonthFirstDate"], dateData["lastMonthLastDate"])
+
+			// 当月应付金额总和 和 新增金额
+			thisMonthFinancePriceTotal := 0.00
+			thisMonthLastMonthAdd := 0.00
+
+			if v["type"] == "source" {
+				thisMonthFinancePriceTotal = financePriceTotal / (float64(EndTime.Day()) / float64(thisMonthTotal))
+
+				lastMonthSourceData, err := getLastMonthSourceCost(sourceMonth, k, sellType)
 				if err != nil {
 					return nil, err
 				}
-				lastMonthCostSum = lastMonthCostSum + v1
-			}
-			logrus.Println("上个月消费总和: ", lastMonthCostSum)
+				for _, v := range lastMonthSourceData {
+					v1, err := strconv.ParseFloat(v.OrderCost, 64)
+					if err != nil {
+						return nil, err
+					}
+					lastMonthCostSum = lastMonthCostSum + v1
+				}
+				//logrus.Println("上个月消费总和: ", lastMonthCostSum)
 
-			thisMonthLastMonthAdd = thisMonthFinancePriceTotal - lastMonthCostSum
-		} else {
-			thisMonthFinancePriceTotal = financePriceTotal / (float64(EndTime.Hour()) / float64(thisMonthTotal))
+				thisMonthLastMonthAdd = thisMonthFinancePriceTotal - lastMonthCostSum
+			} else {
+				thisMonthFinancePriceTotal = financePriceTotal / (float64(EndTime.Hour()) / float64(thisMonthTotal))
 
-			lastShareData, err := getLastMonthShareCost(strings.Replace(dateData["lastMonthFirstDate"], "-", "/", -1), k)
-			if err != nil {
-				return nil, err
-			}
-			for _, v := range lastShareData {
-				v1, err := strconv.ParseFloat(v.ShareCope, 64)
+				lastShareData, err := getLastMonthShareCost(strings.Replace(dateData["lastMonthFirstDate"], "-", "/", -1), k)
 				if err != nil {
 					return nil, err
 				}
-				lastMonthCostSum = lastMonthCostSum + v1
+				for _, v := range lastShareData {
+					v1, err := strconv.ParseFloat(v.ShareCope, 64)
+					if err != nil {
+						return nil, err
+					}
+					lastMonthCostSum = lastMonthCostSum + v1
+				}
+				thisMonthLastMonthAdd = thisMonthFinancePriceTotal - lastMonthCostSum
 			}
-			thisMonthLastMonthAdd = thisMonthFinancePriceTotal - lastMonthCostSum
+			fmt.Println(thisMonthFinancePriceTotal, thisMonthLastMonthAdd)
+			thisMonthBudgetData[sellType][k] = make(map[string]float64)
+			thisMonthBudgetData[sellType][k]["total"] = thisMonthFinancePriceTotal
+			thisMonthBudgetData[sellType][k]["add"] = thisMonthLastMonthAdd
+
 		}
-		fmt.Println(thisMonthFinancePriceTotal, thisMonthLastMonthAdd)
-		thisMonthBudgetData[k] = make(map[string]float64)
-		thisMonthBudgetData[k]["total"] = thisMonthFinancePriceTotal
-		thisMonthBudgetData[k]["add"] = thisMonthLastMonthAdd
-
 	}
 
 	logrus.Println("处理完成...", thisMonthBudgetData)
 	return thisMonthBudgetData, nil
 }
 
-// 获取上个月总和消费数据 资金口径
-func getLastMonthSourceCost(month string, query string) ([]config.SourceBill, error) {
-	sourceBillData := make([]config.SourceBill, 0)
-
-	if err := mysql.Engine.Where("product_name = ?", query).And("month = ?", month).Find(&sourceBillData); err != nil {
-		return nil, err
-	}
-
-	return sourceBillData, nil
-}
-
-// 获取上个月总和消费数据 分摊口径
-func getLastMonthShareCost(month string, query string) ([]config.ShareBill, error) {
-	shareBillData := make([]config.ShareBill, 0)
-
-	if err := mysql.Engine.Where("product_name = ?", query).And("month = ?", month).Find(&shareBillData); err != nil {
-		return nil, err
-	}
-
-	return shareBillData, nil
-}

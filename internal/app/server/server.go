@@ -49,7 +49,7 @@ func StartServer() error {
 	return nil
 }
 
-//启动服务
+// Run 启动服务
 func (s *server) Run() error {
 	return s.App.Run(":8080")
 }

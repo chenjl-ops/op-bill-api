@@ -1,7 +1,7 @@
 package config
 
 /*
-billing package中结构体数据，由于模块化处理，避免循环调用问题，抽离为上层结构
+ShareBill billing package中结构体数据，由于模块化处理，避免循环调用问题，抽离为上层结构
 */
 type ShareBill struct {
 	Month         string  `json:"month" xorm:"VARCHAR(32) 'month' comment('分摊月')"`

@@ -6,10 +6,9 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"op-bill-api/internal/app/billing"
-	"op-bill-api/internal/app/budget"
 	"op-bill-api/internal/app/compute"
 	"op-bill-api/internal/app/middleware/logger"
-	"op-bill-api/internal/app/test"
+	"op-bill-api/internal/app/prediction"
 	"op-bill-api/internal/pkg/apollo"
 	"op-bill-api/internal/pkg/mysql"
 	"op-bill-api/internal/pkg/rdssentinels"
@@ -61,16 +60,15 @@ func initSnowFlake() {
 //	return err
 //}
 
-// 加载gin 路由配置
+// InitRouter 加载gin 路由配置
 func (s *server) InitRouter() *gin.Engine {
-	test.Url(s.App)
-	billing.Url(s.App) // 决算
-	budget.Url(s.App) // 预算
+	billing.Url(s.App)    // 决算
+	prediction.Url(s.App) // 预算
 	compute.Url(s.App)
 	return s.App
 }
 
-// init swagger
+// InitSwagger init swagger
 func (s *server) InitSwagger() *gin.Engine {
 	url := ginSwagger.URL("http://localhost:8080/swagger/doc.json")
 	s.App.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))

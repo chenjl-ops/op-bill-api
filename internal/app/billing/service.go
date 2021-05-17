@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-// 获取月第一天和最后一天
+// GetMonthFirstDate 获取月第一天和最后一天
 // 获取月第一天 shift为偏移量 正为下月 负为上月
 func GetMonthFirstDate(t time.Time, shift int) string {
 	t = t.AddDate(0, shift, -t.Day()+1)
@@ -12,13 +12,13 @@ func GetMonthFirstDate(t time.Time, shift int) string {
 
 }
 
-// 获取月最后一天 shift为偏移量 正为下月 负为上月
+// GetMonthLastDate 获取月最后一天 shift为偏移量 正为下月 负为上月
 func GetMonthLastDate(t time.Time, shift int) string {
 	t = t.AddDate(0, shift, -t.Day())
 	return t.Format(timeFormat)
 }
 
-// 获取月第一天和最后一天
+// GetMonthDate 获取月第一天和最后一天
 func GetMonthDate() map[string]string {
 	data := make(map[string]string)
 

@@ -2,7 +2,7 @@ package compute
 
 import "time"
 
-// 应用内data数据结构
+// AppData 应用内data数据结构
 type AppData struct {
 	Name     string `json:"name"`
 	NickName string `json:"nickName"`
@@ -10,7 +10,7 @@ type AppData struct {
 	Users    string `json:"Users"`
 }
 
-// 应用数据结构
+// Apps 应用数据结构
 type Apps struct {
 	Code    int       `json:"code"`
 	Success bool      `json:"success"`
@@ -18,7 +18,7 @@ type Apps struct {
 	Data    []AppData `json:"data"`
 }
 
-// ecs data数据结构
+// EcsData ecs data数据结构
 type EcsData struct {
 	Env          string `json:"env"`
 	Ip           string `json:"privateIp"`
@@ -27,34 +27,27 @@ type EcsData struct {
 	Status       string `json:"status"`
 }
 
-// ecs数据
+// Ecs ecs数据
 type Ecs struct {
 	Code int       `json:"code"`
 	Data []EcsData `json:"data"`
 }
 
-//// machine结构
-//type Machine struct {
-//	Code    int       `json:"code"`
-//	Success bool      `json:"success"`
-//	Data    []EcsData `json:"data"`
-//}
-
-// instance data
+// InstanceData instance data
 type InstanceData struct {
 	Env     string `json:"env"`
 	Ip      string `json:"ip"`
 	AppName string `json:"appName"`
 }
 
-// instance
+// Instance instance
 type Instance struct {
 	Code    int            `json:"code"`
 	Success bool           `json:"success"`
 	Data    []InstanceData `json:"data"`
 }
 
-// Volume data 结构
+// VolumeAttachments Volume data 结构
 type VolumeAttachments struct {
 	VolumeId   string `json:"volumeId"`
 	Serial     string `json:"serial"`
@@ -88,7 +81,7 @@ type Volume struct {
 	Data Volumes `json:"data"`
 }
 
-// appInfo 应用相关性数据
+// AppInfoData appInfo 应用相关性数据
 type AppInfoData struct {
 	DependentName string `json:"dependent_name"`
 	AppName       string `json:"app_name"`
@@ -98,4 +91,3 @@ type AppInfo struct {
 	Code int           `json:"code"`
 	Data []AppInfoData `json:"data"`
 }
-
