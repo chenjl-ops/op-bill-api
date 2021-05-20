@@ -4,7 +4,7 @@ var billDict = map[string]string{
 	"分摊月":      "Month",
 	"账号id":     "AccountId",
 	"登录名":      "LoginName",
-	"所属单元":       "Unit",
+	"所属单元":     "Unit",
 	"资源/量包id":  "AssetId",
 	"产品名称":     "ProductName",
 	"区域":       "Zone",

@@ -1,6 +1,5 @@
 package compute
 
-
 type CMDBService interface {
 	GetAllApplications() Apps
 	GetEcsData() Ecs

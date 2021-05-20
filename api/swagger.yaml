@@ -26,10 +26,10 @@ paths:
   /bill/v1/get_bill_data:
     get:
       consumes:
-      - application/json
+        - application/json
       description: 查询决算数据
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -48,14 +48,14 @@ paths:
             type: string
       summary: Select billing data
       tags:
-      - Compute API
+        - Compute API
   /bill/v1/get_prediction_data:
     get:
       consumes:
-      - application/json
+        - application/json
       description: 查询预测数据
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -74,14 +74,14 @@ paths:
             type: string
       summary: Select prediction data
       tags:
-      - Compute API
+        - Compute API
   /billing/v1/create_table:
     get:
       consumes:
-      - application/json
+        - application/json
       description: 创建损益和资金口径账单数据表，对应账单状态表
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -100,14 +100,14 @@ paths:
             type: string
       summary: Create Table
       tags:
-      - Billing API
+        - Billing API
   /billing/v1/get_month_data:
     get:
       consumes:
-      - application/json
+        - application/json
       description: 插入账单数据 资金和损益口径
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -126,14 +126,14 @@ paths:
             type: string
       summary: Select Month Data
       tags:
-      - Billing API
+        - Billing API
   /billing/v1/insert_bill_data:
     get:
       consumes:
-      - application/json
+        - application/json
       description: 插入账单数据 资金和损益口径
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -152,14 +152,14 @@ paths:
             type: string
       summary: Insert Data
       tags:
-      - Billing API
+        - Billing API
   /prediction/v1/create_table:
     get:
       consumes:
-      - application/json
+        - application/json
       description: create BillData table
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -178,14 +178,14 @@ paths:
             type: string
       summary: Create BillData Table
       tags:
-      - Prediction API
+        - Prediction API
   /prediction/v1/insert_baidu_bill_data:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Insert Bill Data
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -204,5 +204,5 @@ paths:
             type: string
       summary: Insert Bill Data
       tags:
-      - Prediction API
+        - Prediction API
 swagger: "2.0"

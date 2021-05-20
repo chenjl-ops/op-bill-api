@@ -24,7 +24,6 @@ func getBillExcel() error {
 	monthDateData := GetMonthDate()
 
 	// 账单地址
-	// TODO 未来可以apollo管理账单地址，非硬编码
 	shareBillUrl := fmt.Sprintf(apollo.Config.ShareBillUrl, monthDateData["lastMonthFirstDate"])
 	sourceBillUrl := fmt.Sprintf(apollo.Config.SourceBillUrl, monthDateData["lastMonthFirstDate"], monthDateData["lastMonthLastDate"])
 

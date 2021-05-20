@@ -2,6 +2,7 @@ package compute
 
 import (
 	"github.com/gin-gonic/gin"
+	"op-bill-api/internal/app/prediction"
 	"op-bill-api/internal/pkg/config"
 	"op-bill-api/internal/pkg/mysql"
 	"strconv"
@@ -30,7 +31,6 @@ func getLastMonthShareCost(month string, query string) ([]config.ShareBill, erro
 	return shareBillData, nil
 }
 
-
 // @Tags Compute API
 // @Summary Select billing data
 // @Description 查询决算数据
@@ -55,7 +55,7 @@ func getBilling(c *gin.Context) {
 			})
 		} else {
 			c.JSON(200, gin.H{
-				"msg": "success",
+				"msg":       "success",
 				"cost":      cost,
 				"nonCost":   nonCost,
 				"otherCost": otherCost,
@@ -64,7 +64,6 @@ func getBilling(c *gin.Context) {
 		}
 	}
 }
-
 
 // @Tags Compute API
 // @Summary Select prediction data
@@ -76,16 +75,22 @@ func getBilling(c *gin.Context) {
 // @Failure 400,404 {object} string "Bad Request"
 // @Router /bill/v1/get_prediction_data [get]
 func getPrediction(c *gin.Context) {
-	data, err := CalculatePrediction()
+	err := prediction.GetBaiduBillEveryDayData()
 	if err != nil {
 		c.JSON(500, gin.H{
-			"msg": err,
 		})
 	} else {
-		c.JSON(200, gin.H{
-			"msg":  "success",
-			"data": data,
-		})
+		data, err := CalculatePrediction()
+		if err != nil {
+			c.JSON(500, gin.H{
+				"msg": err,
+			})
+		} else {
+			c.JSON(200, gin.H{
+				"msg":  "success",
+				"data": data,
+			})
+		}
 	}
 }
 

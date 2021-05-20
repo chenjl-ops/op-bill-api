@@ -54,7 +54,6 @@ func Request(url string, data interface{}) error {
 	return nil
 }
 
-
 // 统一request请求
 /*
 Usage:

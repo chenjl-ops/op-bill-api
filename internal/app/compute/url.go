@@ -9,4 +9,3 @@ func Url(r *gin.Engine) {
 		v1.GET("get_prediction_data", getPrediction)
 	}
 }
-

@@ -6,5 +6,3 @@ type BillService interface {
 	GetDepartmentMonthBilling(name string, month int, year int)
 	GetUserMonthBilling(name string, month int, year int)
 }
-
-

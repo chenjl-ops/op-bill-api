@@ -30,5 +30,3 @@ func GetMonthDate() map[string]string {
 
 	return data
 }
-
-

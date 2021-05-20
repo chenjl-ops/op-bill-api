@@ -1,7 +1,7 @@
 package server
 
 import (
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -25,7 +25,7 @@ func initApolloConfig() {
 	var err error
 	err = apollo.ReadRemoteConfig()
 	if nil != err {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 }
 
@@ -33,7 +33,7 @@ func initApolloConfig() {
 func initMysql() {
 	err := mysql.NewMysql()
 	if nil != err {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 }
 
@@ -51,7 +51,10 @@ func (s *server) initLog() *gin.Engine {
 
 // 初始化雪花算法
 func initSnowFlake() {
-	snowflake.InitSnowWorker(1,1)
+	err := snowflake.InitSnowWorker(1, 1)
+	if err != nil {
+		logrus.Fatal(err)
+	}
 }
 
 //  初始化账单job

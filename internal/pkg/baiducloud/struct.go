@@ -8,4 +8,3 @@ type BaiduCloud struct {
 	AccessKeyID     string
 	AccessKeySecret string
 }
-

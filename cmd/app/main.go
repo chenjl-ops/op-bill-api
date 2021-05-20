@@ -6,6 +6,27 @@ import (
 	"op-bill-api/internal/app/server"
 )
 
+/*
+swagger 规范
+
+// @Summary 摘要
+// @Description 描述
+// @Description 接口的详细描述
+// @Id 全局标识符
+// @Version 接口版本号
+// @Tags 接口分组，相当于归类
+// @Accept  json 浏览器可处理数据类型
+// @Produce  json 设置返回数据的类型和编码
+// @Param   参数格式 从左到右：参数名、入参类型、数据类型、是否必填和注释 案例：id query int true "ID"
+// @Success 响应成功 从左到右：状态码、参数类型、数据类型和注释  案例：200 {string} string    "ok"
+// @Failure 响应失败 从左到右：状态码、参数类型、数据类型和注释  案例：400 {object} web.APIError "We need ID!!"
+// @Router 路由： 地址和http方法   案例：/testapi/get-string-by-int/{some_id} [get]
+// @contact.name 接口联系人
+// @contact.url 联系人网址
+// @contact.email 联系人邮箱
+
+*/
+
 // @title Op-bill-api API
 // @version 1.0
 // @description This is a sample server Petstore server.
