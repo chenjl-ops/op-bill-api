@@ -46,3 +46,9 @@ type BillStatus struct {
 	FileName string `json:"filename" xorm:"VARCHAR(128) 'filename' comment('账单文件名称')"`
 	Status   bool   `json:"status" xorm:"TINYINT 'status' comment('状态')"`
 }
+
+type ResponseData struct {
+	Msg   string                 `json:"msg"`
+	Error string                 `json:"error"`
+	Data  map[string]interface{} `json:"data"`
+}

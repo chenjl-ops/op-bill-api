@@ -1,5 +1,5 @@
 package baiducloud
 
-type GET interface {
+type SignatureService interface {
 	GetAuthorization() string
 }

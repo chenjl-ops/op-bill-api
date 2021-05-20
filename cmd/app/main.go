@@ -6,7 +6,7 @@ import (
 	"op-bill-api/internal/app/server"
 )
 
-// @title Go-Starter-Gin API
+// @title Op-bill-api API
 // @version 1.0
 // @description This is a sample server Petstore server.
 // @termsOfService http://swagger.io/terms/

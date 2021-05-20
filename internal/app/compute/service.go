@@ -70,8 +70,8 @@ func GetAppInfoData() AppInfo {
 	return data
 }
 
-// ComputerBilling 计算决算数据
-func ComputerBilling(month string, isShare bool) (c float64, nc float64, oc float64, ac float64, err error) {
+// CalculateBilling 计算决算数据
+func CalculateBilling(month string, isShare bool) (c float64, nc float64, oc float64, ac float64, err error) {
 	// 获取数据库所有配置
 	logrus.Println("isShare", isShare)
 
@@ -240,8 +240,8 @@ func ComputerBilling(month string, isShare bool) (c float64, nc float64, oc floa
 	return cost, nonCost, otherCost, allCost, nil
 }
 
-// ComputerPrediction 计算预测数据 后付费相关数据
-func ComputerPrediction() (map[string]map[string]map[string]float64, error) {
+// CalculatePrediction 计算预测数据 后付费相关数据
+func CalculatePrediction() (map[string]map[string]map[string]float64, error) {
 	logrus.Println("开始...")
 	dateData := billing.GetMonthDate()
 
@@ -345,4 +345,3 @@ func ComputerPrediction() (map[string]map[string]map[string]float64, error) {
 	logrus.Println("处理完成...", thisMonthBudgetData)
 	return thisMonthBudgetData, nil
 }
-

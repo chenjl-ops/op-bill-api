@@ -1,6 +1,6 @@
 package baiducloud
 
-// 百度云认证数据
+// BaiduCloud 百度云认证数据
 type BaiduCloud struct {
 	Url             string
 	Headers         map[string]string

@@ -1,7 +1,7 @@
 package compute
 
 
-type Getter interface {
+type CMDBService interface {
 	GetAllApplications() Apps
 	GetEcsData() Ecs
 	GetVolumeData() Volume
@@ -15,9 +15,9 @@ type Calculate interface {
 }
 
 type Bill interface {
-	ComputerBilling(month string, isShare bool) (c float64, nc float64, oc float64, ac float64, err error)
+	CalculateBilling(month string, isShare bool) (c float64, nc float64, oc float64, ac float64, err error)
 }
 
 type Prediction interface {
-	ComputerPrediction() (map[string]map[string]map[string]float64, error)
+	CalculatePrediction() (map[string]map[string]map[string]float64, error)
 }

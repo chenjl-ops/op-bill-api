@@ -33,9 +33,9 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/v1/test1": {
+        "/bill/v1/get_bill_data": {
             "get": {
-                "description": "get apollo config",
+                "description": "查询决算数据",
                 "consumes": [
                     "application/json"
                 ],
@@ -43,21 +43,258 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Test API"
+                    "Compute API"
                 ],
-                "summary": "List apollo some config",
+                "summary": "Select billing data",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/test.Response"
-                            }
+                            "$ref": "#/definitions/config.ResponseData"
                         },
                         "headers": {
-                            "Response": {
-                                "type": "string"
+                            "config.ResponseData": {
+                                "type": "object"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/bill/v1/get_prediction_data": {
+            "get": {
+                "description": "查询预测数据",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Compute API"
+                ],
+                "summary": "Select prediction data",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/config.ResponseData"
+                        },
+                        "headers": {
+                            "config.ResponseData": {
+                                "type": "object"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/billing/v1/create_table": {
+            "get": {
+                "description": "创建损益和资金口径账单数据表，对应账单状态表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Billing API"
+                ],
+                "summary": "Create Table",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/config.ResponseData"
+                        },
+                        "headers": {
+                            "config.ResponseData": {
+                                "type": "object"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/billing/v1/get_month_data": {
+            "get": {
+                "description": "插入账单数据 资金和损益口径",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Billing API"
+                ],
+                "summary": "Select Month Data",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/config.ResponseData"
+                        },
+                        "headers": {
+                            "config.ResponseData": {
+                                "type": "object"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/billing/v1/insert_bill_data": {
+            "get": {
+                "description": "插入账单数据 资金和损益口径",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Billing API"
+                ],
+                "summary": "Insert Data",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/config.ResponseData"
+                        },
+                        "headers": {
+                            "config.ResponseData": {
+                                "type": "object"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/prediction/v1/create_table": {
+            "get": {
+                "description": "create BillData table",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Prediction API"
+                ],
+                "summary": "Create BillData Table",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/config.ResponseData"
+                        },
+                        "headers": {
+                            "config.ResponseData": {
+                                "type": "object"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/prediction/v1/insert_baidu_bill_data": {
+            "get": {
+                "description": "Insert Bill Data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Prediction API"
+                ],
+                "summary": "Insert Bill Data",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/config.ResponseData"
+                        },
+                        "headers": {
+                            "config.ResponseData": {
+                                "type": "object"
                             }
                         }
                     },
@@ -78,14 +315,15 @@ var doc = `{
         }
     },
     "definitions": {
-        "test.Response": {
+        "config.ResponseData": {
             "type": "object",
             "properties": {
-                "code": {
-                    "type": "integer"
-                },
                 "data": {
-                    "type": "object"
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "error": {
+                    "type": "string"
                 },
                 "msg": {
                     "type": "string"
@@ -110,7 +348,7 @@ var SwaggerInfo = swaggerInfo{
 	Host:        "localhost:8080",
 	BasePath:    "",
 	Schemes:     []string{},
-	Title:       "Go-Starter-Gin API",
+	Title:       "Op-bill-api API",
 	Description: "This is a sample server Petstore server.",
 }
 

@@ -19,44 +19,6 @@ const (
 	timeFormat = "2006-01-02"
 )
 
-// 创建数据表
-func createTable(c *gin.Context) {
-	err := mysql.Engine.Sync2(new(config.ShareBill), new(config.SourceBill), new(config.BillStatus))
-	if err != nil {
-		c.JSON(500, gin.H{
-			"msg":   "failed",
-			"error": err,
-		})
-	} else {
-		c.JSON(200, gin.H{
-			"msg": "success",
-		})
-	}
-}
-
-// 账单数据录入
-func insertData(c *gin.Context) {
-	err := getBillExcel()
-	if err != nil {
-		c.JSON(500, gin.H{
-			"msg":   "failed",
-			"error": err,
-		})
-	} else {
-		c.JSON(200, gin.H{
-			"msg": "success",
-		})
-	}
-}
-
-// 查看月首尾日期
-func getMonthData(c *gin.Context) {
-	dateData := GetMonthDate()
-	c.JSON(200, gin.H{
-		"data": dateData,
-	})
-}
-
 // 获取账单
 func getBillExcel() error {
 	monthDateData := GetMonthDate()
@@ -248,6 +210,71 @@ func checkInsertMonthData(filename string) bool {
 		FileName: filename,
 	})
 	return has
+}
+
+// 创建数据表
+// @Tags Billing API
+// @Summary Create Table
+// @Description 创建损益和资金口径账单数据表，对应账单状态表
+// @Accept  application/json
+// @Produce  application/json
+// @Success 200 {object} config.ResponseData
+// @Header 200 {object}  config.ResponseData
+// @Failure 400,404 {object} string "Bad Request"
+// @Router /billing/v1/create_table [get]
+func createTable(c *gin.Context) {
+	err := mysql.Engine.Sync2(new(config.ShareBill), new(config.SourceBill), new(config.BillStatus))
+	if err != nil {
+		c.JSON(500, gin.H{
+			"msg":   "failed",
+			"error": err,
+		})
+	} else {
+		c.JSON(200, gin.H{
+			"msg": "success",
+		})
+	}
+}
+
+// 账单数据录入
+// @Tags Billing API
+// @Summary Insert Data
+// @Description 插入账单数据 资金和损益口径
+// @Accept  application/json
+// @Produce  application/json
+// @Success 200 {object} config.ResponseData
+// @Header 200 {object}  config.ResponseData
+// @Failure 400,404 {object} string "Bad Request"
+// @Router /billing/v1/insert_bill_data [get]
+func insertData(c *gin.Context) {
+	err := getBillExcel()
+	if err != nil {
+		c.JSON(500, gin.H{
+			"msg":   "failed",
+			"error": err,
+		})
+	} else {
+		c.JSON(200, gin.H{
+			"msg": "success",
+		})
+	}
+}
+
+// 查看月首尾日期
+// @Tags Billing API
+// @Summary Select Month Data
+// @Description 插入账单数据 资金和损益口径
+// @Accept  application/json
+// @Produce  application/json
+// @Success 200 {object} config.ResponseData
+// @Header 200 {object}  config.ResponseData
+// @Failure 400,404 {object} string "Bad Request"
+// @Router /billing/v1/get_month_data [get]
+func getMonthData(c *gin.Context) {
+	dateData := GetMonthDate()
+	c.JSON(200, gin.H{
+		"data": dateData,
+	})
 }
 
 // 自定义获取账单周期

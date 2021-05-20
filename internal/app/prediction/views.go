@@ -111,6 +111,16 @@ func insertBillData(billData []BaiduBillData) error {
 	return nil
 }
 
+
+// @Tags Prediction API
+// @Summary Create BillData Table
+// @Description create BillData table
+// @Accept  application/json
+// @Produce  application/json
+// @Success 200 {object} config.ResponseData
+// @Header 200 {object}  config.ResponseData
+// @Failure 400,404 {object} string "Bad Request"
+// @Router /prediction/v1/create_table [get]
 func createTable(c *gin.Context) {
 	err := mysql.Engine.Sync2(new(BaiduBillData))
 	if err != nil {
@@ -125,6 +135,16 @@ func createTable(c *gin.Context) {
 	}
 }
 
+
+// @Tags Prediction API
+// @Summary Insert Bill Data
+// @Description Insert Bill Data
+// @Accept  application/json
+// @Produce  application/json
+// @Success 200 {object} config.ResponseData
+// @Header 200 {object}  config.ResponseData
+// @Failure 400,404 {object} string "Bad Request"
+// @Router /prediction/v1/insert_baidu_bill_data [get]
 func insertBaiduBillData(c *gin.Context) {
 	err := getBaiduBillEveryDayData()
 	if err != nil {

@@ -1,10 +1,11 @@
 definitions:
-  test.Response:
+  config.ResponseData:
     properties:
-      code:
-        type: integer
       data:
+        additionalProperties: true
         type: object
+      error:
+        type: string
       msg:
         type: string
     type: object
@@ -19,26 +20,24 @@ info:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: http://swagger.io/terms/
-  title: Go-Starter-Gin API
+  title: Op-bill-api API
   version: "1.0"
 paths:
-  /v1/test1:
+  /bill/v1/get_bill_data:
     get:
       consumes:
       - application/json
-      description: get apollo config
+      description: 查询决算数据
       produces:
       - application/json
       responses:
         "200":
           description: OK
           headers:
-            Response:
-              type: string
+            config.ResponseData:
+              type: object
           schema:
-            items:
-              $ref: '#/definitions/test.Response'
-            type: array
+            $ref: '#/definitions/config.ResponseData'
         "400":
           description: Bad Request
           schema:
@@ -47,7 +46,163 @@ paths:
           description: Bad Request
           schema:
             type: string
-      summary: List apollo some config
+      summary: Select billing data
       tags:
-      - Test API
+      - Compute API
+  /bill/v1/get_prediction_data:
+    get:
+      consumes:
+      - application/json
+      description: 查询预测数据
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            config.ResponseData:
+              type: object
+          schema:
+            $ref: '#/definitions/config.ResponseData'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Select prediction data
+      tags:
+      - Compute API
+  /billing/v1/create_table:
+    get:
+      consumes:
+      - application/json
+      description: 创建损益和资金口径账单数据表，对应账单状态表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            config.ResponseData:
+              type: object
+          schema:
+            $ref: '#/definitions/config.ResponseData'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Create Table
+      tags:
+      - Billing API
+  /billing/v1/get_month_data:
+    get:
+      consumes:
+      - application/json
+      description: 插入账单数据 资金和损益口径
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            config.ResponseData:
+              type: object
+          schema:
+            $ref: '#/definitions/config.ResponseData'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Select Month Data
+      tags:
+      - Billing API
+  /billing/v1/insert_bill_data:
+    get:
+      consumes:
+      - application/json
+      description: 插入账单数据 资金和损益口径
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            config.ResponseData:
+              type: object
+          schema:
+            $ref: '#/definitions/config.ResponseData'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Insert Data
+      tags:
+      - Billing API
+  /prediction/v1/create_table:
+    get:
+      consumes:
+      - application/json
+      description: create BillData table
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            config.ResponseData:
+              type: object
+          schema:
+            $ref: '#/definitions/config.ResponseData'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Create BillData Table
+      tags:
+      - Prediction API
+  /prediction/v1/insert_baidu_bill_data:
+    get:
+      consumes:
+      - application/json
+      description: Insert Bill Data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            config.ResponseData:
+              type: object
+          schema:
+            $ref: '#/definitions/config.ResponseData'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Insert Bill Data
+      tags:
+      - Prediction API
 swagger: "2.0"
