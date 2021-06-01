@@ -6,7 +6,7 @@ type BaiduBillData struct {
 	AmountUnit          string  `json:"amountUnit" xorm:"VARCHAR(32) 'amountUnit' comment('用量单位')"`
 	Cash                float64 `json:"cash" xorm:"Float 'cash' comment('现金支付金额')"`
 	ChargeItem          string  `json:"chargeItem" xorm:"VARCHAR(32) 'chargeItem' comment('后付费计费项英文名')"`
-	ChargeItemDesc      string  `json:"chargeItemDesc" xorm:"VARCHAR(32) 'chargeItemDesc' comment('后付费计费项中文名')"`
+	ChargeItemDesc      string  `json:"chargeItemDesc" xorm:"VARCHAR(128) 'chargeItemDesc' comment('后付费计费项中文名')"`
 	ConfigurationCH     string  `json:"configurationCH" xorm:"VARCHAR(1024) 'configurationCH' comment('产品中文配置')"`
 	CouponPrice         float64 `json:"couponPrice" xorm:"Float 'couponPrice' comment('代金券金额')"`
 	CreditCost          float64 `json:"creditCost" xorm:"Float 'creditCost' comment('账期未还金额')"`
@@ -17,7 +17,7 @@ type BaiduBillData struct {
 	DiscountUnit        string  `json:"discountUnit" xorm:"VARCHAR(32) 'discountUnit' comment('折扣率')"`
 	Duration            string  `json:"duration" xorm:"VARCHAR(32) 'duration' comment('预付费服务时长')"`
 	FinancePrice        float64 `json:"financePrice" xorm:"Float 'financePrice' comment('应付金额')"`
-	InstanceId          string  `json:"instanceId" xorm:"VARCHAR(32) 'instanceId' comment('资源ID')"`
+	InstanceId          string  `json:"instanceId" xorm:"VARCHAR(128) 'instanceId' comment('资源ID')"`
 	NoPaidPrice         float64 `json:"noPaidPrice" xorm:"Float 'noPaidPrice' comment('优惠金额')"`
 	OrderId             string  `json:"orderId" xorm:"VARCHAR(32) 'orderId' comment('资源购买的订单id')"`
 	OrderPurchaseTime   string  `json:"orderPurchaseTime" xorm:"VARCHAR(32) 'orderPurchaseTime' comment('订单的支付时间，utc时间')"`

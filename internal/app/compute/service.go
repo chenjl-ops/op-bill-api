@@ -71,20 +71,21 @@ func GetAppInfoData() AppInfo {
 }
 
 // CalculateBilling 计算决算数据
-func CalculateBilling(month string, isShare bool) (c float64, nc float64, oc float64, ac float64, err error) {
+func CalculateBilling(month string, isShare bool) (map[string]float64, error) {
 	// 获取数据库所有配置
 	logrus.Println("isShare", isShare)
+	otherBillData := make(map[string]float64, 0)
 
 	billData := make([]config.ShareBill, 0)
 	if err := mysql.Engine.Where("month = ?", month).Find(&billData); err != nil {
 		logger.Log.Error("查询数据异常: ", err)
-		return 0.00, 0.00, 0.00, 0.00, err
+		return otherBillData, err
 	}
 
 	sourceData := make([]config.SourceBill, 0)
 	if err := mysql.Engine.Where("month = ?", month).Find(&sourceData); err != nil {
 		logger.Log.Error("查询数据异常: ", err)
-		return 0.00, 0.00, 0.00, 0.00, err
+		return otherBillData, err
 	}
 
 	// 获取所有应用
@@ -100,6 +101,29 @@ func CalculateBilling(month string, isShare bool) (c float64, nc float64, oc flo
 
 	// 并发请求所有应用实例信息
 	instanceCh := make(chan Instance)
+
+	// 控制并发数
+	//var wg sync.WaitGroup
+	//limitChan := make(chan int, 100)
+	//for i := 0; i< len(allApps.Data); i++ {
+	//	wg.Add(1)
+	//	go func() {
+	//		defer wg.Done()
+	//		for d := range limitChan {
+	//			app := allApps.Data[d]
+	//			GetAppInstanceData(app.Name, instanceCh)
+	//		}
+	//	}()
+	//}
+	//
+	//for i := 0; i< len(allApps.Data); i++ {
+	//	limitChan <- 1
+	//	limitChan <- 2
+	//}
+	//
+	//close(limitChan)
+	//wg.Wait()
+
 	for _, app := range allApps.Data {
 		// TODO 并发请求数据造成后端接口无法响应，后续增加限流措施
 		go GetAppInstanceData(app.Name, instanceCh)
@@ -122,9 +146,11 @@ func CalculateBilling(month string, isShare bool) (c float64, nc float64, oc flo
 		// 全局instances instances = append(instances, appInstances.Data...)
 		// 循环instance prod环境加入列表
 		appInstances := <-instanceCh
-		for _, instance := range appInstances.Data {
-			if instance.Env == "prod" {
-				bccIdData[bccIdData[instance.Ip]] = instance.AppName
+		if len(appInstances.Data) > 0 {
+			for _, instance := range appInstances.Data {
+				if instance.Env == "prod" {
+					bccIdData[bccIdData[instance.Ip]] = instance.AppName
+				}
 			}
 		}
 	}
@@ -155,6 +181,9 @@ func CalculateBilling(month string, isShare bool) (c float64, nc float64, oc flo
 	allCost := 0.00
 
 	if isShare {
+		for _, v := range shareBillProductNames {
+			otherBillData[v] = 0.00
+		}
 		for _, v := range billData {
 			// 计算prod 强相关数据
 			if v.ProductName == "云服务器 BCC" {
@@ -191,11 +220,18 @@ func CalculateBilling(month string, isShare bool) (c float64, nc float64, oc flo
 					allCost = allCost + x
 					otherCost = otherCost + x
 				}
+
+				if _, ok := otherBillData[v.ProductName]; ok {
+					otherBillData[v.ProductName] = otherBillData[v.ProductName] + x
+				}
 			}
 
 		}
 	} else {
 		logrus.Println("source 计算: ")
+		for _, v := range sourceBillProductNames {
+			otherBillData[v] = 0.00
+		}
 		for _, v := range sourceData {
 			// 计算prod 强相关数据
 			if v.ProductName == "云服务器 BCC" {
@@ -232,12 +268,36 @@ func CalculateBilling(month string, isShare bool) (c float64, nc float64, oc flo
 					allCost = allCost + x
 					otherCost = otherCost + x
 				}
+				if _, ok := otherBillData[v.ProductName]; ok {
+					otherBillData[v.ProductName] = otherBillData[v.ProductName] + x
+				}
 			}
 		}
 
 	}
 
-	return cost, nonCost, otherCost, allCost, nil
+
+
+	resultData := make(map[string]float64)
+	resultData = otherBillData
+	logrus.Println("COST: ", cost, nonCost, otherCost, allCost)
+	resultData["cost"] = cost
+	resultData["nonCost"] = nonCost
+	resultData["otherCost"] = otherCost
+	resultData["allCost"] = allCost
+
+	// 计算数据 * 折扣率
+	if !isShare {
+		for k, v := range resultData {
+			if _, ok := sourceBillTex[k]; ok {
+				resultData[k] = v * sourceBillTex[k]
+			} else {
+				resultData[k] = v * 0.39
+			}
+		}
+	}
+
+	return resultData, nil
 }
 
 // CalculatePrediction 计算预测数据 后付费相关数据

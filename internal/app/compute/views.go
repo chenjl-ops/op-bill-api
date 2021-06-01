@@ -48,18 +48,15 @@ func getBilling(c *gin.Context) {
 			"msg": "parameter month not none",
 		})
 	} else {
-		cost, nonCost, otherCost, allCost, err := CalculateBilling(month, isShare)
+		data, err := CalculateBilling(month, isShare)
 		if err != nil {
 			c.JSON(500, gin.H{
 				"msg": err,
 			})
 		} else {
 			c.JSON(200, gin.H{
-				"msg":       "success",
-				"cost":      cost,
-				"nonCost":   nonCost,
-				"otherCost": otherCost,
-				"allCost":   allCost,
+				"msg":  "success",
+				"data": data,
 			})
 		}
 	}
@@ -78,6 +75,7 @@ func getPrediction(c *gin.Context) {
 	err := prediction.GetBaiduBillEveryDayData()
 	if err != nil {
 		c.JSON(500, gin.H{
+			"msg": err,
 		})
 	} else {
 		data, err := CalculatePrediction()

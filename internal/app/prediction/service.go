@@ -81,6 +81,7 @@ func GetBaiduBillEveryDayData() error {
 	// 入库
 	err := insertBillData(billData)
 	if err != nil {
+		logrus.Println("bill Data: ", billData)
 		logrus.Println("Bill Data 入库异常: ", err)
 		return err
 	}

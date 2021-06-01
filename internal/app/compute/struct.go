@@ -1,7 +1,5 @@
 package compute
 
-import "time"
-
 // AppData 应用内data数据结构
 type AppData struct {
 	Name     string `json:"name"`
@@ -59,8 +57,8 @@ type VolumeData struct {
 	ID             string              `json:"id"`
 	Name           string              `json:"name"`
 	DiskSizeInGB   int                 `json:"diskSizeInGB"`
-	CreateTime     time.Duration       `json:"createTime"`
-	ExpireTime     time.Duration       `json:"expireTime"`
+	CreateTime     string              `json:"createTime"`
+	ExpireTime     string              `json:"expireTime"`
 	Status         string              `json:"status"`
 	Type           string              `json:"type"`
 	StorageType    string              `json:"storageType"`
