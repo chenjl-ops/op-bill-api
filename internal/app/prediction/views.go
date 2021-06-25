@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/Sirupsen/logrus"
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"op-bill-api/internal/pkg/apollo"
 	"op-bill-api/internal/pkg/baiducloud"
 	"op-bill-api/internal/pkg/mysql"
@@ -62,14 +63,14 @@ func insertBillData(billData []BaiduBillData) error {
 // @Failure 400,404 {object} string "Bad Request"
 // @Router /prediction/v1/create_table [get]
 func createTable(c *gin.Context) {
-	err := mysql.Engine.Sync2(new(BaiduBillData))
+	err := mysql.Engine.Sync2(new(BaiduBillData), new(PredData))
 	if err != nil {
-		c.JSON(500, gin.H{
+		c.JSON(http.StatusInternalServerError, gin.H{
 			"msg":   "failed",
 			"error": err,
 		})
 	} else {
-		c.JSON(200, gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"msg": "success",
 		})
 	}
@@ -87,12 +88,12 @@ func createTable(c *gin.Context) {
 func insertBaiduBillData(c *gin.Context) {
 	err := GetBaiduBillEveryDayData()
 	if err != nil {
-		c.JSON(500, gin.H{
+		c.JSON(http.StatusInternalServerError, gin.H{
 			"msg":   "failed",
 			"error": err,
 		})
 	} else {
-		c.JSON(200, gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"msg": "success",
 		})
 	}

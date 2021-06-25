@@ -2,10 +2,13 @@ package compute
 
 import (
 	"github.com/gin-gonic/gin"
+	"net/http"
+	"op-bill-api/internal/app/billing"
 	"op-bill-api/internal/app/prediction"
 	"op-bill-api/internal/pkg/config"
 	"op-bill-api/internal/pkg/mysql"
 	"strconv"
+	"time"
 )
 
 // 获取上个月总和消费数据 资金口径
@@ -31,11 +34,21 @@ func getLastMonthShareCost(month string, query string) ([]config.ShareBill, erro
 	return shareBillData, nil
 }
 
+// 获取折扣率数据
+func getTexData(name string) (billing.SourceBillTex, error) {
+	var texData billing.SourceBillTex
+	_, err := mysql.Engine.Where("name = ?", name).Get(&texData)
+	return texData, err
+
+}
+
 // @Tags Compute API
 // @Summary Select billing data
 // @Description 查询决算数据
 // @Accept  application/json
 // @Produce  application/json
+// @Param month query string true "get bill of month"
+// @Param isShare query boolean true "get bill of share or source"
 // @Success 200 {object} config.ResponseData
 // @Header 200 {object}  config.ResponseData
 // @Failure 400,404 {object} string "Bad Request"
@@ -44,20 +57,34 @@ func getBilling(c *gin.Context) {
 	month := c.DefaultQuery("month", "")
 	isShare, _ := strconv.ParseBool(c.Query("isShare"))
 	if month == "" {
-		c.JSON(500, gin.H{
+		c.JSON(http.StatusInternalServerError, gin.H{
 			"msg": "parameter month not none",
 		})
 	} else {
-		data, err := CalculateBilling(month, isShare)
-		if err != nil {
-			c.JSON(500, gin.H{
-				"msg": err,
-			})
+		if billing.CheckBillData(month, isShare) {
+			data, err := billing.GetBillData(month, isShare)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"msg": err,
+				})
+			} else {
+				c.JSON(http.StatusOK, gin.H{
+					"msg":  "success",
+					"data": data.Data,
+				})
+			}
 		} else {
-			c.JSON(200, gin.H{
-				"msg":  "success",
-				"data": data,
-			})
+			data, err := CalculateBilling(month, isShare)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"msg": err,
+				})
+			} else {
+				c.JSON(http.StatusOK, gin.H{
+					"msg":  "success",
+					"data": data,
+				})
+			}
 		}
 	}
 }
@@ -67,28 +94,39 @@ func getBilling(c *gin.Context) {
 // @Description 查询预测数据
 // @Accept  application/json
 // @Produce  application/json
+// @Param date query string false "get prediction of date, default today"
 // @Success 200 {object} config.ResponseData
 // @Header 200 {object}  config.ResponseData
 // @Failure 400,404 {object} string "Bad Request"
 // @Router /bill/v1/get_prediction_data [get]
 func getPrediction(c *gin.Context) {
-	err := prediction.GetBaiduBillEveryDayData()
-	if err != nil {
-		c.JSON(500, gin.H{
-			"msg": err,
-		})
-	} else {
-		data, err := CalculatePrediction()
+	date := c.DefaultQuery("date", time.Now().Format(timeFormat))
+	data, has := prediction.GetPrediction(date)
+	if !has {
+		err := prediction.GetBaiduBillEveryDayData()
 		if err != nil {
-			c.JSON(500, gin.H{
+			c.JSON(http.StatusInternalServerError, gin.H{
 				"msg": err,
 			})
 		} else {
-			c.JSON(200, gin.H{
-				"msg":  "success",
-				"data": data,
-			})
+			// data, err := CalculatePrediction()
+			data, err := CalculatePredictionV2()
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"msg": err,
+				})
+			} else {
+				c.JSON(http.StatusOK, gin.H{
+					"msg":  "success",
+					"data": data,
+				})
+			}
 		}
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"msg":  "success",
+			"data": data.Data,
+		})
 	}
 }
 

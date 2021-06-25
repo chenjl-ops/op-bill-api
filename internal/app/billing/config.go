@@ -38,3 +38,8 @@ var sourceDict = map[string]string{
 	"售卖方式":  "SellType",
 	"账单金额":  "OrderCost",
 }
+
+var SourceBillTexColumns = []map[string]string{
+	{"name": "name", "nickName": "资源名称"},
+	{"name": "tex", "nickName": "折扣率"},
+}

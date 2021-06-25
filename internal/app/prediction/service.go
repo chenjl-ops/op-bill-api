@@ -3,6 +3,7 @@ package prediction
 import (
 	"fmt"
 	"github.com/Sirupsen/logrus"
+	"github.com/thoas/go-funk"
 	"op-bill-api/internal/app/billing"
 	"op-bill-api/internal/app/middleware/logger"
 	"op-bill-api/internal/pkg/baiducloud"
@@ -20,14 +21,45 @@ import (
 //	return billData, nil
 //}
 
+const (
+	timeFormat = "2006-01-02"
+)
+
 // GetQueryBaiduBillData 获取特定数据集合
 func GetQueryBaiduBillData(serviceType string, sellType string) ([]BaiduBillData, error) {
 	billData := make([]BaiduBillData, 0)
-	if err := mysql.Engine.Where("serviceType = ?", serviceType).And("productType = ?", sellType).Find(&billData); err != nil {
+	if err := mysql.Engine.Where("serviceTypeName = ?", serviceType).And("productType = ?", sellType).Find(&billData); err != nil {
 		logger.Log.Error("查询数据异常: ", err)
 		return nil, err
 	}
 	return billData, nil
+}
+
+// GetAllServiceAndName 获取账单数据所有资源类别和资源名称集合
+func GetAllServiceAndName() (map[string][]string, error) {
+	data := make(map[string][]string)
+
+	sellTypes := [2]string{"prepay", "postpay"}
+	for _, sellType := range sellTypes {
+		data[sellType] = make([]string, 0)
+		namesData := make([]string, 0)
+		//typesData := make([]string, 0)
+		billData := make([]BaiduBillData, 0)
+		if err := mysql.Engine.Where("productType = ?", sellType).Find(&billData); err != nil {
+			return data, err
+		}
+
+		for _, data := range billData {
+			if !funk.Contains(namesData, data.ServiceTypeName) {
+				namesData = append(namesData, data.ServiceTypeName)
+			}
+			//if !funk.Contains(typesData, data.ServiceType) {
+			//	typesData = append(typesData, data.ServiceType)
+			//}
+		}
+		data[sellType] = namesData
+	}
+	return data, nil
 }
 
 func GetBaiduBillEveryDayData() error {
@@ -86,4 +118,31 @@ func GetBaiduBillEveryDayData() error {
 		return err
 	}
 	return nil
+}
+
+// InsertPrediction 入库预测数据
+func InsertPrediction(data map[string]map[string]map[string]float64) error {
+	x := PredData{
+		Date: time.Now().Format(timeFormat),
+		Data: data,
+	}
+	_, err := mysql.Engine.Insert(&x)
+	return err
+}
+
+// GetPrediction 查询预测数据
+func GetPrediction(date string) (PredData, bool) {
+	var data PredData
+	has, err := mysql.Engine.Exist(&PredData{Date: date})
+	logrus.Println("校验预测数据是否存在: ", has, err)
+	if has {
+		_, err := mysql.Engine.Where("date = ?", date).Get(&data)
+		if err != nil {
+			return data, false
+		} else {
+			return data, true
+		}
+	} else {
+		return data, false
+	}
 }

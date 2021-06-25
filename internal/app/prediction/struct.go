@@ -50,3 +50,9 @@ type BaiduBill struct {
 	TotalCount   int             `json:"totalCount"`
 	Bills        []BaiduBillData `json:"bills"`
 }
+
+// PredData 存放预测数据
+type PredData struct {
+	Date string                                   `json:"date" xorm:"VARCHAR(32) unique 'date' comment('日期')"`
+	Data map[string]map[string]map[string]float64 `json:"data" xorm:"TEXT 'data' comment('数据')"`
+}

@@ -1,6 +1,7 @@
 package billing
 
 import (
+	"op-bill-api/internal/pkg/mysql"
 	"time"
 )
 
@@ -29,4 +30,65 @@ func GetMonthDate() map[string]string {
 	data["lastMonthLastDate"] = GetMonthLastDate(t, 0)    //上月最后一天
 
 	return data
+}
+
+// GetTexData 获取折扣率数据
+func GetTexData(name string) (SourceBillTex, error){
+	var data SourceBillTex
+	_, err := mysql.Engine.Where("name = ?", name).Get(&data)
+	return data, err
+}
+
+// 更新折扣率，通过name和tex action标识动作
+func InsertOrUpdateTexData(name string, tex float64, action string) bool {
+	data := SourceBillTex{Name: name, Tex: tex}
+	var err error
+	if action == "POST" { // 支持新增和update减少客户端逻辑
+		has, _ := mysql.Engine.Exist(&SourceBillTex{Name:name})
+		if has {
+			_, err = mysql.Engine.Update(&data, &SourceBillTex{Name: name})
+		} else {
+			_, err = mysql.Engine.Insert(&data)
+		}
+	} else if action == "PUT" {
+		_, err = mysql.Engine.Update(&data, &SourceBillTex{Name: name})
+
+	} else {
+		return false
+	}
+
+	// 判断操作结果
+	if err != nil {
+		return false
+	} else {
+		return true
+	}
+}
+
+// CheckBillData 校验账单数据
+func CheckBillData(month string, isShare bool) bool {
+	has, _ := mysql.Engine.Exist(&BillData{
+		Month:   month,
+		IsShare: isShare,
+	})
+	return has
+}
+
+// GetBillData 查询账单数据
+func GetBillData(month string, isShare bool) (BillData, error) {
+	var data BillData
+	_, err := mysql.Engine.Where("month = ?", month).And("isShare = ?", isShare).Get(&data)
+	return data, err
+}
+
+// InsertBillData 数据写入
+func InsertBillData(month string, isShare bool, data map[string]float64) error {
+	x := BillData{
+		Month: month,
+		IsShare: isShare,
+		Data: data,
+	}
+
+	_, err := mysql.Engine.Insert(&x)
+	return err
 }

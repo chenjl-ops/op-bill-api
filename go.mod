@@ -29,6 +29,7 @@ require (
 	github.com/rifflock/lfshook v0.0.0-20170215182608-1ae91782cf87
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/shima-park/agollo v1.2.10
+	github.com/shopspring/decimal v1.2.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/viper v1.7.1
 	github.com/swaggo/files v0.0.0-20190704085106-630677cd5c14

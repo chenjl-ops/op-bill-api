@@ -29,20 +29,6 @@ var sourceBillProductNames = [...]string{
 	"音视频直播 LSS",
 }
 
-// source账单折扣率
-var sourceBillTex = map[string]float64 {
-	"Elasticsearch": 0.5,
-	"DDoS高防IP ADAS": 0.8,
-	"负载均衡 BLB": 0.8,
-	"对等连接 PEERCONN": 0.8,
-	"NAT网关": 0.8,
-	"内容分发网络 CDN": 1,
-	"海外CDN CDN_ABOAD": 1,
-	"视频创作分发平台": 1,
-	"音视频直播 LSS": 1,
-	"对象存储 BOS": 1,
-}
-
 // share资源数据 product_name
 var shareBillProductNames = [...]string{
 	"DDoS高防IP ADAS",
@@ -55,4 +41,37 @@ var shareBillProductNames = [...]string{
 	"弹性裸金属服务器 BBC",
 	"数据可视化 Sugar",
 	"移动域名解析 HTTPDNS",
+}
+
+// 百度账单接口名称 和账单excel名称对应关系
+var apiNameBillNameMap = map[string]string{
+	"DDoS高防服务": "DDoS高防IP ADAS",
+	"EIP带宽包": "EIP带宽包 EIP_BP",
+	"IPv6公网网关": "IPv6公网网关",
+	"NAT网关": "NAT网关",
+	"SSL证书服务": "SSL证书",
+	"云服务器": "云服务器 BCC",
+	"云磁盘": "云磁盘 CDS",
+	"代理关系型数据库": "云数据库RDS RDS_PROXY",
+	"关系型数据库": "云数据库RDS",
+	"内容分发网络": "内容分发网络 CDN",
+	"函数计算": "函数计算 CFC",
+	"只读关系型数据库": "云数据库RDS RDS_REPLICA",
+	"密钥管理服务": "密钥管理服务 KMS",
+	"对等连接": "对等连接 PEERCONN",
+	"对象存储": "对象存储 BOS",
+	"弹性公网IP": "弹性公网IP EIP",
+	"文件存储": "文件存储 CFS",
+	"服务网卡": "服务网卡 SNIC",
+	"本地DNS服务": "本地DNS服务 LD",
+	"海外CDN": "海外CDN CDN_ABOAD",
+	"物理服务器": "弹性裸金属服务器 BBC",
+	"百度Elasticsearch": "Elasticsearch",
+	"百度日志服务": "日志服务 BLS",
+	"移动解析": "移动域名解析 HTTPDNS",
+	"简单缓存服务": "云数据库SCS for Redis",
+	"负载均衡": "负载均衡 BLB",
+	"音视频点播": "视频创作分发平台",
+	"音视频直播": "音视频直播 LSS",
+	"音视频转码": "音视频处理 MCP",
 }

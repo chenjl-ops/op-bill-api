@@ -211,6 +211,8 @@ func checkInsertMonthData(filename string) bool {
 	return has
 }
 
+
+
 // 创建数据表
 // @Tags Billing API
 // @Summary Create Table
@@ -222,17 +224,208 @@ func checkInsertMonthData(filename string) bool {
 // @Failure 400,404 {object} string "Bad Request"
 // @Router /billing/v1/create_table [get]
 func createTable(c *gin.Context) {
-	err := mysql.Engine.Sync2(new(config.ShareBill), new(config.SourceBill), new(config.BillStatus))
+	err := mysql.Engine.Sync2(new(config.ShareBill), new(config.SourceBill), new(config.BillStatus), new(BillData), new(SourceBillTex))
 	if err != nil {
-		c.JSON(500, gin.H{
+		c.JSON(http.StatusInternalServerError, gin.H{
 			"msg":   "failed",
 			"error": err,
 		})
 	} else {
-		c.JSON(200, gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"msg": "success",
 		})
 	}
+}
+
+// 初始化折扣率数据
+// @Tags Billing API
+// @Summary Create Table
+// @Description 初始化折扣率数据
+// @Accept  application/json
+// @Produce  application/json
+// @Success 200 {object} config.ResponseData
+// @Header 200 {object}  config.ResponseData
+// @Failure 400,404 {object} string "Bad Request"
+// @Router /billing/v1/init_tex_data [get]
+func initTexData(c *gin.Context) {
+	// source账单折扣率
+	var sourceBillTex = map[string]float64{
+		"Elasticsearch":   0.5,
+		"DDoS高防IP ADAS":   0.8,
+		"负载均衡 BLB":        0.8,
+		"对等连接 PEERCONN":   0.8,
+		"NAT网关":           0.8,
+		"内容分发网络 CDN":      1,
+		"海外CDN CDN_ABOAD": 1,
+		"视频创作分发平台":        1,
+		"音视频直播 LSS":       1,
+		"对象存储 BOS":        1,
+	}
+
+	var data []SourceBillTex
+	for name, tex := range sourceBillTex {
+		var dataTemp SourceBillTex
+		temp := make(map[string]interface{})
+		temp["name"] = name
+		temp["tex"] = tex
+
+		if err := mapstructure.Decode(temp, &dataTemp); err != nil {
+			logrus.Error("bill数据转换异常: ", err)
+		}
+		data = append(data, dataTemp)
+	}
+	_, err := mysql.Engine.Insert(&data)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg":   "failed",
+			"error": err,
+		})
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"msg": "success",
+		})
+	}
+}
+
+
+// Update资源折扣率
+// @Tags Billing API
+// @Summary Get Data
+// @Description 更新资源折扣率
+// @Accept  application/json
+// @Produce  application/json
+// @Param tex body SourceBillTex true "new SourceBillTex"
+// @Success 200 {object} config.ResponseData
+// @Header 200 {object}  config.ResponseData
+// @Failure 400,404 {object} string "Bad Request"
+// @Router /billing/v1/tex [put]
+func updateTexData(c *gin.Context) {
+	var json SourceBillTex
+	c.BindJSON(&json)
+
+	is := InsertOrUpdateTexData(json.Name, json.Tex, "PUT")
+	if is {
+		c.JSON(http.StatusOK, gin.H{
+			"msg": "success",
+		})
+	} else {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg":   "failed",
+		})
+	}
+}
+
+// 新增资源折扣率
+// @Tags Billing API
+// @Summary Get Data
+// @Description 新增资源折扣率
+// @Accept  application/json
+// @Produce  application/json
+// @Param tex body SourceBillTex true "new SourceBillTex"
+// @Success 200 {object} config.ResponseData
+// @Header 200 {object}  config.ResponseData
+// @Failure 400,404 {object} string "Bad Request"
+// @Router /billing/v1/tex [post]
+func insertTexData(c *gin.Context) {
+	/*
+	json 数据类型
+	//json := make(map[string]interface{})
+	{"name": "xxxx", "tex": xx}
+	 */
+
+	var json SourceBillTex
+	c.BindJSON(&json)
+
+	is := InsertOrUpdateTexData(json.Name, json.Tex, "POST")
+	if is {
+		c.JSON(http.StatusOK, gin.H{
+			"msg": "success",
+		})
+	} else {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg":   "failed",
+		})
+	}
+}
+
+
+// 删除资源折扣率
+// @Tags Billing API
+// @Summary Get Data
+// @Description 删除资源折扣率
+// @Accept  application/json
+// @Produce  application/json
+// @Param name query string false "delete name of tex"
+// @Success 200 {object} config.ResponseData
+// @Header 200 {object}  config.ResponseData
+// @Failure 400,404 {object} string "Bad Request"
+// @Router /billing/v1/tex [delete]
+func deleteTexData(c *gin.Context) {
+	name := c.DefaultQuery("name", "")
+	if name == "" {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg":   "failed",
+			"error": "name error, name must not none",
+		})
+	} else {
+		_, err := mysql.Engine.Where("name = ?", name).Delete(&SourceBillTex{Name: name})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"msg":   "failed",
+				"error": err,
+			})
+		} else {
+			c.JSON(http.StatusOK, gin.H{
+				"msg":     "success",
+			})
+		}
+	}
+}
+
+// 获取资源折扣率
+// @Tags Billing API
+// @Summary Get Data
+// @Description 获取资源折扣率
+// @Accept  application/json
+// @Produce  application/json
+// @Param name query string false "select name of tex"
+// @Success 200 {object} config.ResponseData
+// @Header 200 {object}  config.ResponseData
+// @Failure 400,404 {object} string "Bad Request"
+// @Router /billing/v1/tex [get]
+func getTexData(c *gin.Context) {
+	name := c.DefaultQuery("name", "")
+	if name != "" {
+		data, err := GetTexData(name)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"msg":   "failed",
+				"error": err,
+			})
+		} else {
+			c.JSON(http.StatusOK, gin.H{
+				"msg":     "success",
+				"data":    data,
+				"columns": SourceBillTexColumns,
+			})
+		}
+	} else {
+		var data []SourceBillTex
+		err := mysql.Engine.Find(&data)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"msg":   "failed",
+				"error": err,
+			})
+		} else {
+			c.JSON(http.StatusOK, gin.H{
+				"msg":     "success",
+				"data":    data,
+				"columns": SourceBillTexColumns,
+			})
+		}
+	}
+
 }
 
 // 账单数据录入
@@ -248,12 +441,12 @@ func createTable(c *gin.Context) {
 func insertData(c *gin.Context) {
 	err := getBillExcel()
 	if err != nil {
-		c.JSON(500, gin.H{
+		c.JSON(http.StatusInternalServerError, gin.H{
 			"msg":   "failed",
 			"error": err,
 		})
 	} else {
-		c.JSON(200, gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"msg": "success",
 		})
 	}
@@ -271,7 +464,7 @@ func insertData(c *gin.Context) {
 // @Router /billing/v1/get_month_data [get]
 func getMonthData(c *gin.Context) {
 	dateData := GetMonthDate()
-	c.JSON(200, gin.H{
+	c.JSON(http.StatusOK, gin.H{
 		"data": dateData,
 	})
 }

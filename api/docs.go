@@ -46,6 +46,22 @@ var doc = `{
                     "Compute API"
                 ],
                 "summary": "Select billing data",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "get bill of month",
+                        "name": "month",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "get bill of share or source",
+                        "name": "isShare",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -86,6 +102,14 @@ var doc = `{
                     "Compute API"
                 ],
                 "summary": "Select prediction data",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "get prediction of date, default today",
+                        "name": "date",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -193,6 +217,46 @@ var doc = `{
                 }
             }
         },
+        "/billing/v1/init_tex_data": {
+            "get": {
+                "description": "初始化折扣率数据",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Billing API"
+                ],
+                "summary": "Create Table",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/config.ResponseData"
+                        },
+                        "headers": {
+                            "config.ResponseData": {
+                                "type": "object"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/billing/v1/insert_bill_data": {
             "get": {
                 "description": "插入账单数据 资金和损益口径",
@@ -206,6 +270,198 @@ var doc = `{
                     "Billing API"
                 ],
                 "summary": "Insert Data",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/config.ResponseData"
+                        },
+                        "headers": {
+                            "config.ResponseData": {
+                                "type": "object"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/billing/v1/tex": {
+            "get": {
+                "description": "获取资源折扣率",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Billing API"
+                ],
+                "summary": "Get Data",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "select name of tex",
+                        "name": "name",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/config.ResponseData"
+                        },
+                        "headers": {
+                            "config.ResponseData": {
+                                "type": "object"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "更新资源折扣率",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Billing API"
+                ],
+                "summary": "Get Data",
+                "parameters": [
+                    {
+                        "description": "new SourceBillTex",
+                        "name": "tex",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/billing.SourceBillTex"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/config.ResponseData"
+                        },
+                        "headers": {
+                            "config.ResponseData": {
+                                "type": "object"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "新增资源折扣率",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Billing API"
+                ],
+                "summary": "Get Data",
+                "parameters": [
+                    {
+                        "description": "new SourceBillTex",
+                        "name": "tex",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/billing.SourceBillTex"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/config.ResponseData"
+                        },
+                        "headers": {
+                            "config.ResponseData": {
+                                "type": "object"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "删除资源折扣率",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Billing API"
+                ],
+                "summary": "Get Data",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "delete name of tex",
+                        "name": "name",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -315,9 +571,29 @@ var doc = `{
         }
     },
     "definitions": {
+        "billing.SourceBillTex": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "tex": {
+                    "type": "number"
+                }
+            }
+        },
         "config.ResponseData": {
             "type": "object",
             "properties": {
+                "columns": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    }
+                },
                 "data": {
                     "type": "object",
                     "additionalProperties": true

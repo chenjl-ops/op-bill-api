@@ -48,7 +48,8 @@ type BillStatus struct {
 }
 
 type ResponseData struct {
-	Msg   string                 `json:"msg"`
-	Error string                 `json:"error"`
-	Data  map[string]interface{} `json:"data"`
+	Msg     string                 `json:"msg"`
+	Error   string                 `json:"error"`
+	Data    map[string]interface{} `json:"data"`
+	Columns []map[string]string    `json:"columns"`
 }
