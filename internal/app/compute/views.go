@@ -189,28 +189,34 @@ func getPrediction(c *gin.Context) {
 // @Router /bill/v1/get_all_prediction_data [get]
 func getAllPrediction(c *gin.Context) {
 	data, err := prediction.GetAllPrediction()
-	var Data prediction.PreDataResponse
+
+	Data := make([]prediction.PreDataResponse, 0)
 
 	for _, v := range data {
-		Data.Date = v.Date
-		Data.Cost = 0.00
-		Data.AddCost = 0.00
+		var tempData prediction.PreDataResponse
+		tempData.Date = v.Date
+		tempData.Cost = 0.00
+		tempData.AddCost = 0.00
 		for x, y := range v.Data {
 			if x == "postpay" {
 				for _, z := range y {
-					Data.Cost = Data.Cost + z["Total"]
-					Data.AddCost = Data.AddCost + z["Add"]
+					//logrus.Println("ADD: ", z)
+					//Data.Cost = Data.Cost + z["Total"]
+					tempData.AddCost = tempData.AddCost + z["Add"]
 				}
 			}
 			if x == "prepay" {
 				for _, z := range y {
-					Data.Cost = Data.Cost + z["Total"]
+					tempData.Cost = tempData.Cost + z["Total"]
 				}
 			}
 		}
-		Data.Cost, _ = decimal.NewFromFloat(Data.Cost).Round(2).Float64()
-		Data.AddCost, _ = decimal.NewFromFloat(Data.AddCost).Round(2).Float64()
+		tempData.Cost = tempData.Cost + tempData.AddCost
 
+		tempData.Cost, _ = decimal.NewFromFloat(tempData.Cost).Round(2).Float64()
+		tempData.AddCost, _ = decimal.NewFromFloat(tempData.AddCost).Round(2).Float64()
+
+		Data = append(Data, tempData)
 	}
 
 

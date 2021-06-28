@@ -541,9 +541,11 @@ func CalculatePredictionV2() (map[string]map[string]map[string]float64, error) {
 					lastMonthCostSum = lastMonthCostSum + v1
 				}
 
+				logrus.Println(v, lastMonthCostSum)
+
 				// 计算上个月花费总和折扣点
 				texData, err := getTexData(apiNameBillNameMap[v])
-				if err != nil {
+				if err == nil {
 					lastMonthCostSum = lastMonthCostSum * texData.Tex
 				} else {
 					// 默认3.9折

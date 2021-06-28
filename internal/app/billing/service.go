@@ -40,7 +40,7 @@ func GetTexData(name string) (SourceBillTex, error){
 	return data, err
 }
 
-// 更新折扣率，通过name和tex action标识动作
+// InsertOrUpdateTexData 更新折扣率，通过name和tex action标识动作
 func InsertOrUpdateTexData(name string, tex float64, action string) bool {
 	data := SourceBillTex{Name: name, Tex: tex}
 	var err error
@@ -97,7 +97,7 @@ func InsertBillData(month string, isShare bool, data map[string]float64) error {
 // GetAllBillData 获取账单全量数据 资金/损益 口径
 // TODO 分页功能
 func GetAllBillData(isShare bool) ([]BillData, error) {
-	var data []BillData
+	data := make([]BillData, 0)
 	err := mysql.Engine.Where("isShare = ?", isShare).Find(&data)
 	if err != nil {
 		logrus.Println("获取账单全量数据异常: ", err)

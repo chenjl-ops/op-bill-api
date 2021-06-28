@@ -211,8 +211,6 @@ func checkInsertMonthData(filename string) bool {
 	return has
 }
 
-
-
 // 创建数据表
 // @Tags Billing API
 // @Summary Create Table
@@ -257,9 +255,19 @@ func initTexData(c *gin.Context) {
 		"NAT网关":           0.8,
 		"内容分发网络 CDN":      1,
 		"海外CDN CDN_ABOAD": 1,
-		"视频创作分发平台":        1,
+		"视频创作分发平台":        0.7,
 		"音视频直播 LSS":       1,
 		"对象存储 BOS":        1,
+		"EIP带宽包 EIP_BP":   0.8,
+		"IPv6公网网关":        0.75,
+		"服务网卡 SNIC":       0.75,
+		"本地DNS服务 LD":      0.75,
+		"密钥管理服务 KMS":      0.5,
+		"弹性公网IP EIP":      0.8,
+		"云数据库RDS RDS_PROXY": 1,
+		"云数据库RDS RDS_REPLICA": 1,
+		"日志服务 BLS": 0.7,
+		"移动域名解析 HTTPDNS": 0.4,
 	}
 
 	var data []SourceBillTex
@@ -287,7 +295,6 @@ func initTexData(c *gin.Context) {
 	}
 }
 
-
 // Update资源折扣率
 // @Tags Billing API
 // @Summary Get Data
@@ -310,7 +317,7 @@ func updateTexData(c *gin.Context) {
 		})
 	} else {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"msg":   "failed",
+			"msg": "failed",
 		})
 	}
 }
@@ -328,10 +335,10 @@ func updateTexData(c *gin.Context) {
 // @Router /billing/v1/tex [post]
 func insertTexData(c *gin.Context) {
 	/*
-	json 数据类型
-	//json := make(map[string]interface{})
-	{"name": "xxxx", "tex": xx}
-	 */
+		json 数据类型
+		//json := make(map[string]interface{})
+		{"name": "xxxx", "tex": xx}
+	*/
 
 	var json SourceBillTex
 	c.BindJSON(&json)
@@ -343,11 +350,10 @@ func insertTexData(c *gin.Context) {
 		})
 	} else {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"msg":   "failed",
+			"msg": "failed",
 		})
 	}
 }
-
 
 // 删除资源折扣率
 // @Tags Billing API
@@ -376,7 +382,7 @@ func deleteTexData(c *gin.Context) {
 			})
 		} else {
 			c.JSON(http.StatusOK, gin.H{
-				"msg":     "success",
+				"msg": "success",
 			})
 		}
 	}

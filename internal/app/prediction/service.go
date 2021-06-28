@@ -150,7 +150,7 @@ func GetPrediction(date string) (PredData, bool) {
 // GetAllPrediction 查询全量预测数据
 // TODO 增加分页支持
 func GetAllPrediction() ([]PredData, error) {
-	var data []PredData
+	data := make([]PredData, 0)
 	err := mysql.Engine.Find(&data)
 	if err != nil {
 		logrus.Println("查询全量数据异常: ", err)
