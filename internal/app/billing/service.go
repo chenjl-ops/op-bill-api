@@ -1,6 +1,7 @@
 package billing
 
 import (
+	"github.com/Sirupsen/logrus"
 	"op-bill-api/internal/pkg/mysql"
 	"time"
 )
@@ -91,4 +92,15 @@ func InsertBillData(month string, isShare bool, data map[string]float64) error {
 
 	_, err := mysql.Engine.Insert(&x)
 	return err
+}
+
+// GetAllBillData 获取账单全量数据 资金/损益 口径
+// TODO 分页功能
+func GetAllBillData(isShare bool) ([]BillData, error) {
+	var data []BillData
+	err := mysql.Engine.Where("isShare = ?", isShare).Find(&data)
+	if err != nil {
+		logrus.Println("获取账单全量数据异常: ", err)
+	}
+	return data, err
 }

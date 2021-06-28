@@ -28,6 +28,69 @@ info:
   title: Op-bill-api API
   version: "1.0"
 paths:
+  /bill/v1/get_all_bill_data:
+    get:
+      consumes:
+      - application/json
+      description: 查询决算全量数据
+      parameters:
+      - description: get bill of share or source all data
+        in: query
+        name: isShare
+        required: true
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            config.ResponseData:
+              type: object
+          schema:
+            $ref: '#/definitions/config.ResponseData'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Select billing data
+      tags:
+      - Compute API
+  /bill/v1/get_all_prediction_data:
+    get:
+      consumes:
+      - application/json
+      description: 查询预测全量数据
+      parameters:
+      - description: get all prediction data
+        in: query
+        name: date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            config.ResponseData:
+              type: object
+          schema:
+            $ref: '#/definitions/config.ResponseData'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Select prediction all data
+      tags:
+      - Compute API
   /bill/v1/get_bill_data:
     get:
       consumes:
@@ -93,7 +156,7 @@ paths:
           description: Bad Request
           schema:
             type: string
-      summary: Select prediction data
+      summary: Select prediction data of someday
       tags:
       - Compute API
   /billing/v1/create_table:

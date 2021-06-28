@@ -130,7 +130,7 @@ func InsertPrediction(data map[string]map[string]map[string]float64) error {
 	return err
 }
 
-// GetPrediction 查询预测数据
+// GetPrediction 查询某一天预测数据
 func GetPrediction(date string) (PredData, bool) {
 	var data PredData
 	has, err := mysql.Engine.Exist(&PredData{Date: date})
@@ -145,4 +145,15 @@ func GetPrediction(date string) (PredData, bool) {
 	} else {
 		return data, false
 	}
+}
+
+// GetAllPrediction 查询全量预测数据
+// TODO 增加分页支持
+func GetAllPrediction() ([]PredData, error) {
+	var data []PredData
+	err := mysql.Engine.Find(&data)
+	if err != nil {
+		logrus.Println("查询全量数据异常: ", err)
+	}
+	return data, err
 }

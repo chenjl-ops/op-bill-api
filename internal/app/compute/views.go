@@ -1,7 +1,9 @@
 package compute
 
 import (
+	"github.com/Sirupsen/logrus"
 	"github.com/gin-gonic/gin"
+	"github.com/shopspring/decimal"
 	"net/http"
 	"op-bill-api/internal/app/billing"
 	"op-bill-api/internal/app/prediction"
@@ -90,7 +92,52 @@ func getBilling(c *gin.Context) {
 }
 
 // @Tags Compute API
-// @Summary Select prediction data
+// @Summary Select billing data
+// @Description 查询决算全量数据
+// @Accept  application/json
+// @Produce  application/json
+// @Param isShare query boolean true "get bill of share or source all data"
+// @Success 200 {object} config.ResponseData
+// @Header 200 {object}  config.ResponseData
+// @Failure 400,404 {object} string "Bad Request"
+// @Router /bill/v1/get_all_bill_data [get]
+func getAllBilling(c *gin.Context) {
+	isShare, _ := strconv.ParseBool(c.Query("isShare"))
+
+	data, err := billing.GetAllBillData(isShare)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg": err,
+		})
+	} else {
+		var Data []billing.BillDataResponse
+		//for _, v :=range data {
+		//	logrus.Println("xxxxx: ", v.IsShare, v.Month)
+		//	for x, y := range v.Data {
+		//		logrus.Println("处理结果数据: ", x, y)
+		//	}
+		//}
+		for _, v := range data {
+			var tempX billing.BillDataResponse
+			tempX.Month = v.Month
+			tempX.IsShare = v.IsShare
+			for k, y := range v.Data {
+				if k == "allCost" {
+					tempX.AllCost = y
+				}
+			}
+			Data = append(Data, tempX)
+		}
+		logrus.Println("处理结果数据: ", Data)
+		c.JSON(http.StatusOK, gin.H{
+			"msg":  "success",
+			"data": Data,
+		})
+	}
+}
+
+// @Tags Compute API
+// @Summary Select prediction data of someday
 // @Description 查询预测数据
 // @Accept  application/json
 // @Produce  application/json
@@ -126,6 +173,55 @@ func getPrediction(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"msg":  "success",
 			"data": data.Data,
+		})
+	}
+}
+
+// @Tags Compute API
+// @Summary Select prediction all data
+// @Description 查询预测全量数据
+// @Accept  application/json
+// @Produce  application/json
+// @Param date query string false "get all prediction data"
+// @Success 200 {object} config.ResponseData
+// @Header 200 {object}  config.ResponseData
+// @Failure 400,404 {object} string "Bad Request"
+// @Router /bill/v1/get_all_prediction_data [get]
+func getAllPrediction(c *gin.Context) {
+	data, err := prediction.GetAllPrediction()
+	var Data prediction.PreDataResponse
+
+	for _, v := range data {
+		Data.Date = v.Date
+		Data.Cost = 0.00
+		Data.AddCost = 0.00
+		for x, y := range v.Data {
+			if x == "postpay" {
+				for _, z := range y {
+					Data.Cost = Data.Cost + z["Total"]
+					Data.AddCost = Data.AddCost + z["Add"]
+				}
+			}
+			if x == "prepay" {
+				for _, z := range y {
+					Data.Cost = Data.Cost + z["Total"]
+				}
+			}
+		}
+		Data.Cost, _ = decimal.NewFromFloat(Data.Cost).Round(2).Float64()
+		Data.AddCost, _ = decimal.NewFromFloat(Data.AddCost).Round(2).Float64()
+
+	}
+
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg": err,
+		})
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"msg":  "success",
+			"data": Data,
 		})
 	}
 }

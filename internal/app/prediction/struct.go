@@ -56,3 +56,9 @@ type PredData struct {
 	Date string                                   `json:"date" xorm:"VARCHAR(32) unique 'date' comment('日期')"`
 	Data map[string]map[string]map[string]float64 `json:"data" xorm:"TEXT 'data' comment('数据')"`
 }
+
+type PreDataResponse struct {
+	Date    string  `json:"date"`
+	Cost    float64 `json:"cost"`
+	AddCost float64 `json:"addCost"`
+}

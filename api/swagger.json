@@ -7,6 +7,103 @@
         "version": "1.0"
     },
     "paths": {
+        "/bill/v1/get_all_bill_data": {
+            "get": {
+                "description": "查询决算全量数据",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Compute API"
+                ],
+                "summary": "Select billing data",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "get bill of share or source all data",
+                        "name": "isShare",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/config.ResponseData"
+                        },
+                        "headers": {
+                            "config.ResponseData": {
+                                "type": "object"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/bill/v1/get_all_prediction_data": {
+            "get": {
+                "description": "查询预测全量数据",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Compute API"
+                ],
+                "summary": "Select prediction all data",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "get all prediction data",
+                        "name": "date",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/config.ResponseData"
+                        },
+                        "headers": {
+                            "config.ResponseData": {
+                                "type": "object"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/bill/v1/get_bill_data": {
             "get": {
                 "description": "查询决算数据",
@@ -75,7 +172,7 @@
                 "tags": [
                     "Compute API"
                 ],
-                "summary": "Select prediction data",
+                "summary": "Select prediction data of someday",
                 "parameters": [
                     {
                         "type": "string",

@@ -11,3 +11,9 @@ type SourceBillTex struct {
 	Name string  `json:"name" xorm:"VARCHAR(128) unique 'name' comment('资源名称')"`
 	Tex  float64 `json:"tex" xorm:"Float 'tex' comment('折扣率')"`
 }
+
+type BillDataResponse struct {
+	Month   string  `json:"month"`
+	IsShare bool    `json:"isShare"`
+	AllCost float64 `json:"allCost"`
+}
