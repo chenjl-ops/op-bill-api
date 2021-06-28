@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"github.com/Sirupsen/logrus"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -73,7 +74,7 @@ func (s *server) InitRouter() *gin.Engine {
 
 // InitSwagger init swagger
 func (s *server) InitSwagger() *gin.Engine {
-	url := ginSwagger.URL("http://localhost:8080/swagger/doc.json")
+	url := ginSwagger.URL(fmt.Sprintf("https://%s/swagger/doc.json", apollo.Config.SelfDomain))
 	s.App.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
 	return s.App
 }

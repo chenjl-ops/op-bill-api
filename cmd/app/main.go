@@ -25,11 +25,7 @@ swagger 规范
 // @contact.url 联系人网址
 // @contact.email 联系人邮箱
 
-*/
 
-// @title Op-bill-api API
-// @version 1.0
-// @description This is a sample server Petstore server.
 // @termsOfService http://swagger.io/terms/
 
 // @contact.name API Support
@@ -39,11 +35,16 @@ swagger 规范
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @host localhost:8080
+// @host apollo.Config.SelfDomain
 // @BasePath
 
 // @in header
 // @name Authorization
+*/
+
+// @title Op-bill-api API
+// @version 1.0
+// @description This is op-bill-api api server.
 func main() {
 	log.Info("Start op-bill-api Service ....")
 	err := server.StartServer()

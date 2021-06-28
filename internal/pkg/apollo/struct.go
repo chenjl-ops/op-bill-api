@@ -31,4 +31,6 @@ type Specification struct {
 	ShareBillUrl         string `envconfig:"SHARE_BILL_URL" mapstructure:"share_bill_url"`
 	SourceBillUrl        string `envconfig:"SOURCE_BILL_URL" mapstructure:"source_bill_url"`
 	DownloadPath         string `envconfig:"DOWNLOAD_PATH" mapstructure:"download_path"`
+	SelfDomain           string `envconfig:"SELF_DOMAIN" mapstructure:"self_domain"`
+	ListenPort           string `envconfig:"LISTEN_PORT" mapstructure:"listen_port"`
 }

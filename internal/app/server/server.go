@@ -1,8 +1,10 @@
 package server
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-playground/validator"
+	"op-bill-api/internal/pkg/apollo"
 )
 
 type server struct {
@@ -51,7 +53,7 @@ func StartServer() error {
 
 // Run 启动服务
 func (s *server) Run() error {
-	return s.App.Run(":8080")
+	return s.App.Run(fmt.Sprintf("0.0.0.0:%s", apollo.Config.ListenPort))
 }
 
 // 跨域设置
