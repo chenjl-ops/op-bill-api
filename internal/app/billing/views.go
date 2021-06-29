@@ -12,6 +12,7 @@ import (
 	"op-bill-api/internal/pkg/config"
 	"op-bill-api/internal/pkg/mysql"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -455,6 +456,50 @@ func insertData(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"msg": "success",
 		})
+	}
+}
+
+// @Tags Billing API
+// @Summary Select billing data
+// @Description 查询账单详情数据
+// @Accept  application/json
+// @Produce  application/json
+// @Param month query string true "get bill of 百度"
+// @Param isShare query boolean true "get bill of share or source"
+// @Success 200 {object} config.ResponseData
+// @Header 200 {object}  config.ResponseData
+// @Failure 400,404 {object} string "Bad Request"
+// @Router /billing/v1/get_baidu_bill_data [get]
+func getBillData(c *gin.Context) {
+	month := c.DefaultQuery("month", "")
+	isShare, _ := strconv.ParseBool(c.Query("isShare"))
+
+	if isShare {
+		data, err := GetBaiduShareBillData(month)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"msg":   "failed",
+				"error": err,
+			})
+		} else {
+			c.JSON(http.StatusOK, gin.H{
+				"msg": "success",
+				"data": data,
+			})
+		}
+	} else {
+		data, err := GetBaiduSourceBillData(month)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"msg":   "failed",
+				"error": err,
+			})
+		} else {
+			c.JSON(http.StatusOK, gin.H{
+				"msg": "success",
+				"data": data,
+			})
+		}
 	}
 }
 

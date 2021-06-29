@@ -2,6 +2,7 @@ package billing
 
 import (
 	"github.com/Sirupsen/logrus"
+	"op-bill-api/internal/pkg/config"
 	"op-bill-api/internal/pkg/mysql"
 	"time"
 )
@@ -34,7 +35,7 @@ func GetMonthDate() map[string]string {
 }
 
 // GetTexData 获取折扣率数据
-func GetTexData(name string) (SourceBillTex, error){
+func GetTexData(name string) (SourceBillTex, error) {
 	var data SourceBillTex
 	_, err := mysql.Engine.Where("name = ?", name).Get(&data)
 	return data, err
@@ -45,7 +46,7 @@ func InsertOrUpdateTexData(name string, tex float64, action string) bool {
 	data := SourceBillTex{Name: name, Tex: tex}
 	var err error
 	if action == "POST" { // 支持新增和update减少客户端逻辑
-		has, _ := mysql.Engine.Exist(&SourceBillTex{Name:name})
+		has, _ := mysql.Engine.Exist(&SourceBillTex{Name: name})
 		if has {
 			_, err = mysql.Engine.Update(&data, &SourceBillTex{Name: name})
 		} else {
@@ -85,9 +86,9 @@ func GetBillData(month string, isShare bool) (BillData, error) {
 // InsertBillData 数据写入
 func InsertBillData(month string, isShare bool, data map[string]map[string]float64) error {
 	x := BillData{
-		Month: month,
+		Month:   month,
 		IsShare: isShare,
-		Data: data,
+		Data:    data,
 	}
 
 	_, err := mysql.Engine.Insert(&x)
@@ -102,5 +103,19 @@ func GetAllBillData(isShare bool) ([]BillData, error) {
 	if err != nil {
 		logrus.Println("获取账单全量数据异常: ", err)
 	}
+	return data, err
+}
+
+// GetBaiduShareBillData 获取损益账单数据详情
+func GetBaiduShareBillData(month string) ([]config.ShareBill, error) {
+	var data []config.ShareBill
+	err := mysql.Engine.Where("month = ?", month).Find(&data)
+	return data, err
+}
+
+// GetBaiduSourceBillData 获取资金口径账单数据详情
+func GetBaiduSourceBillData(month string) ([]config.SourceBill, error) {
+	var data []config.SourceBill
+	err := mysql.Engine.Where("month = ?", month).Find(&data)
 	return data, err
 }

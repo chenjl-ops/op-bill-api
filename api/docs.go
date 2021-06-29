@@ -265,6 +265,62 @@ var doc = `{
                 }
             }
         },
+        "/billing/v1/get_baidu_bill_data": {
+            "get": {
+                "description": "查询账单详情数据",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Billing API"
+                ],
+                "summary": "Select billing data",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "get bill of 百度",
+                        "name": "month",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "get bill of share or source",
+                        "name": "isShare",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/config.ResponseData"
+                        },
+                        "headers": {
+                            "config.ResponseData": {
+                                "type": "object"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/billing/v1/get_month_data": {
             "get": {
                 "description": "插入账单数据 资金和损益口径",

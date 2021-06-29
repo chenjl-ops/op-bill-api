@@ -185,6 +185,43 @@ paths:
       summary: Create Table
       tags:
       - Billing API
+  /billing/v1/get_baidu_bill_data:
+    get:
+      consumes:
+      - application/json
+      description: 查询账单详情数据
+      parameters:
+      - description: get bill of 百度
+        in: query
+        name: month
+        required: true
+        type: string
+      - description: get bill of share or source
+        in: query
+        name: isShare
+        required: true
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            config.ResponseData:
+              type: object
+          schema:
+            $ref: '#/definitions/config.ResponseData'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Select billing data
+      tags:
+      - Billing API
   /billing/v1/get_month_data:
     get:
       consumes:
