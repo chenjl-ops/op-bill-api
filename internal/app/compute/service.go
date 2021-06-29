@@ -76,21 +76,22 @@ func GetAppInfoData() AppInfo {
 }
 
 // CalculateBilling 计算决算数据
-func CalculateBilling(month string, isShare bool) (map[string]float64, error) {
+func CalculateBilling(month string, isShare bool) (map[string]map[string]float64, error) {
 	// 获取数据库所有配置
 	logrus.Println("isShare", isShare)
+	defaultBillData := make(map[string]map[string]float64, 0)
 	otherBillData := make(map[string]float64, 0)
 
 	billData := make([]config.ShareBill, 0)
 	if err := mysql.Engine.Where("month = ?", month).Find(&billData); err != nil {
 		logger.Log.Error("查询数据异常: ", err)
-		return otherBillData, err
+		return defaultBillData, err
 	}
 
 	sourceData := make([]config.SourceBill, 0)
 	if err := mysql.Engine.Where("month = ?", month).Find(&sourceData); err != nil {
 		logger.Log.Error("查询数据异常: ", err)
-		return otherBillData, err
+		return defaultBillData, err
 	}
 
 	// 获取所有应用
@@ -191,6 +192,15 @@ func CalculateBilling(month string, isShare bool) (map[string]float64, error) {
 			otherBillData[v] = 0.00
 		}
 		for _, v := range billData {
+			x, err := strconv.ParseFloat(v.ShareCope, 64)
+			if _, ok := otherBillData[v.ProductName]; ok {
+				otherBillData[v.ProductName] = otherBillData[v.ProductName] + x
+			}
+			//
+			//if _, ok := otherBillData[v.ProductName]; ok {
+			//	otherBillData[v.ProductName] = otherBillData[v.ProductName] + x
+			//}
+			//
 			// 计算prod 强相关数据
 			if v.ProductName == "云服务器 BCC" {
 				x, err := strconv.ParseFloat(v.ShareCope, 64)
@@ -221,15 +231,12 @@ func CalculateBilling(month string, isShare bool) (map[string]float64, error) {
 					}
 				}
 			} else {
-				x, err := strconv.ParseFloat(v.ShareCope, 64)
+
 				if err == nil {
 					allCost = allCost + x
 					otherCost = otherCost + x
 				}
 
-				if _, ok := otherBillData[v.ProductName]; ok {
-					otherBillData[v.ProductName] = otherBillData[v.ProductName] + x
-				}
 			}
 
 		}
@@ -239,6 +246,10 @@ func CalculateBilling(month string, isShare bool) (map[string]float64, error) {
 			otherBillData[v] = 0.00
 		}
 		for _, v := range sourceData {
+			x, err := strconv.ParseFloat(v.OrderCost, 64)
+			if _, ok := otherBillData[v.ProductName]; ok {
+				otherBillData[v.ProductName] = otherBillData[v.ProductName] + x
+			}
 			// 计算prod 强相关数据
 			if v.ProductName == "云服务器 BCC" {
 				x, err := strconv.ParseFloat(v.OrderCost, 64)
@@ -269,39 +280,57 @@ func CalculateBilling(month string, isShare bool) (map[string]float64, error) {
 					}
 				}
 			} else {
-				x, err := strconv.ParseFloat(v.OrderCost, 64)
 				if err == nil {
 					allCost = allCost + x
 					otherCost = otherCost + x
-				}
-				if _, ok := otherBillData[v.ProductName]; ok {
-					otherBillData[v.ProductName] = otherBillData[v.ProductName] + x
 				}
 			}
 		}
 
 	}
 
-	resultData := make(map[string]float64)
-	resultData = otherBillData
+	resultData := make(map[string]map[string]float64)
+	tempData := make(map[string]float64)
+
+	//for _, v := range otherBillData {
+	//	percent, _ := decimal.NewFromFloat(v/allCost * 100 ).Round(2).Float64()
+	//	tempData["cost"] = v
+	//	tempData["percent"] = percent
+	//
+	//}
+
+	tempData = otherBillData
+	resultData["detail"] = tempData
+	resultData["title"] = map[string]float64{"成本花费": cost, "生产花费": nonCost, "研发花费": otherCost, "总花费": allCost}
 	//logrus.Println("COST: ", cost, nonCost, otherCost, allCost)
-	resultData["cost"] = cost
-	resultData["nonCost"] = nonCost
-	resultData["otherCost"] = otherCost
-	resultData["allCost"] = allCost
+	//resultData["成本花费"] = cost
+	//resultData["生产花费"] = nonCost
+	//resultData["研发花费"] = otherCost
+	//resultData["总花费"] = allCost
+
+	//allCost, _ := decimal.NewFromFloat(allCost).Round(2).Float64()
 
 	// 计算数据 * 折扣率
 	if !isShare {
-		for k, v := range resultData {
-			// 获取数据库折扣率
-			texData, err := getTexData(k)
-			if err != nil {
-				vv, _ := decimal.NewFromFloat(v * texData.Tex).Round(2).Float64()
-				resultData[k] = vv
-			} else {
-				// 默认3.9折
-				vv, _ := decimal.NewFromFloat(v * 0.39).Round(2).Float64()
-				resultData[k] = vv
+		for x, y := range resultData {
+			for k, v := range y {
+				// 获取数据库折扣率
+				texData, err := getTexData(k)
+				if err != nil {
+					vv, _ := decimal.NewFromFloat(v * texData.Tex).Round(2).Float64()
+					resultData[x][k] = vv
+				} else {
+					// 默认3.9折
+					vv, _ := decimal.NewFromFloat(v * 0.39).Round(2).Float64()
+					resultData[x][k] = vv
+				}
+			}
+		}
+	} else {
+		for x, y := range resultData {
+			for k, v := range y {
+				vv, _ := decimal.NewFromFloat(v).Round(2).Float64()
+				resultData[x][k] = vv
 			}
 		}
 	}
@@ -557,7 +586,8 @@ func CalculatePredictionV2() (map[string]map[string]map[string]float64, error) {
 
 				thisMonthPredictionData[sellType][v]["Total"] = financePriceTotal
 				thisMonthPredictionData[sellType][v]["LastMonthCost"] = lastMonthCostSum
-				thisMonthPredictionData[sellType][v]["Add"] = financePriceTotal - lastMonthCostSum
+				Add, _ := decimal.NewFromFloat(financePriceTotal - lastMonthCostSum).Round(2).Float64()
+				thisMonthPredictionData[sellType][v]["Add"] = Add
 			}
 			if sellType == "prepay" {
 				//lastShareData, err := getLastMonthShareCost(strings.Replace(dateData["lastMonthFirstDate"], "-", "/", -1), apiNameBillNameMap[v])
@@ -587,5 +617,3 @@ func CalculatePredictionV2() (map[string]map[string]map[string]float64, error) {
 	}
 	return thisMonthPredictionData, nil
 }
-
-

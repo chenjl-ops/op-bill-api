@@ -83,7 +83,7 @@ func GetBillData(month string, isShare bool) (BillData, error) {
 }
 
 // InsertBillData 数据写入
-func InsertBillData(month string, isShare bool, data map[string]float64) error {
+func InsertBillData(month string, isShare bool, data map[string]map[string]float64) error {
 	x := BillData{
 		Month: month,
 		IsShare: isShare,

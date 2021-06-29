@@ -65,14 +65,27 @@ func getBilling(c *gin.Context) {
 	} else {
 		if billing.CheckBillData(month, isShare) {
 			data, err := billing.GetBillData(month, isShare)
+
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"msg": err,
 				})
 			} else {
+				tempD := make(map[string]map[string]float64, 0)
+				logrus.Println("DDDDDDDD: ", data)
+				for k, v := range data.Data["detail"] {
+					tempData := make(map[string]float64, 0)
+
+					percent, _ := decimal.NewFromFloat(v / data.Data["title"]["总花费"] * 100).Round(2).Float64()
+					tempData["cost"] = v
+					tempData["percent"] = percent
+
+					tempD[k] = tempData
+				}
+
 				c.JSON(http.StatusOK, gin.H{
 					"msg":  "success",
-					"data": data.Data,
+					"data": tempD,
 				})
 			}
 		} else {
@@ -111,27 +124,36 @@ func getAllBilling(c *gin.Context) {
 		})
 	} else {
 		var Data []billing.BillDataResponse
-		//for _, v :=range data {
-		//	logrus.Println("xxxxx: ", v.IsShare, v.Month)
-		//	for x, y := range v.Data {
-		//		logrus.Println("处理结果数据: ", x, y)
-		//	}
-		//}
 		for _, v := range data {
 			var tempX billing.BillDataResponse
 			tempX.Month = v.Month
 			tempX.IsShare = v.IsShare
-			for k, y := range v.Data {
-				if k == "allCost" {
-					tempX.AllCost = y
-				}
-			}
+			//{"成本花费": cost, "生产花费": nonCost, "研发花费": otherCost, "总花费": allCost}
+			tempX.AllCost = v.Data["title"]["总花费"]
+			tempX.OtherCost = v.Data["title"]["研发花费"]
+			tempX.Cost = v.Data["title"]["成本花费"]
+			tempX.NoneCost = v.Data["title"]["生产花费"]
+			//for k, y := range v.Data {
+			//	if k == "allCost" {
+			//		tempX.AllCost = y
+			//	}
+			//	if k == "nonCost" {
+			//		tempX.NoneCost = y
+			//	}
+			//	if k == "otherCost" {
+			//		tempX.OtherCost = y
+			//	}
+			//	if k == "cost" {
+			//		tempX.Cost = y
+			//	}
+			//}
 			Data = append(Data, tempX)
 		}
 		logrus.Println("处理结果数据: ", Data)
 		c.JSON(http.StatusOK, gin.H{
-			"msg":  "success",
-			"data": Data,
+			"msg":     "success",
+			"data":    Data,
+			"columns": billDataResponseColumns,
 		})
 	}
 }
@@ -218,7 +240,6 @@ func getAllPrediction(c *gin.Context) {
 
 		Data = append(Data, tempData)
 	}
-
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{

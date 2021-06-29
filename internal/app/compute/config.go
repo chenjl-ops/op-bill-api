@@ -2,6 +2,8 @@ package compute
 
 // source资源数据 product_name
 var sourceBillProductNames = [...]string{
+	"云服务器 BCC",
+	"云磁盘 CDS",
 	"DDoS高防IP ADAS",
 	"EIP带宽包 EIP_BP",
 	"Elasticsearch",
@@ -31,6 +33,8 @@ var sourceBillProductNames = [...]string{
 
 // share资源数据 product_name
 var shareBillProductNames = [...]string{
+	"云服务器 BCC",
+	"云磁盘 CDS",
 	"DDoS高防IP ADAS",
 	"Elasticsearch",
 	"NAT网关",
@@ -74,4 +78,14 @@ var apiNameBillNameMap = map[string]string{
 	"音视频点播": "视频创作分发平台",
 	"音视频直播": "音视频直播 LSS",
 	"音视频转码": "音视频处理 MCP",
+}
+
+// 账单总和接口columns配置
+var billDataResponseColumns = [...]map[string]string {
+	{"name": "cost", "aliasName": "成本花费"},
+	{"name": "allCost", "aliasName": "总花费"},
+	{"name": "noneCost", "aliasName": "生产花费"},
+	{"name": "otherCost", "aliasName": "研发花费"},
+	{"name": "month", "aliasName": "月份"},
+	{"name": "isShare", "aliasName": "是否是损益"},
 }
