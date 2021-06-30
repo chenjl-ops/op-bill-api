@@ -292,23 +292,9 @@ func CalculateBilling(month string, isShare bool) (map[string]map[string]float64
 	resultData := make(map[string]map[string]float64)
 	tempData := make(map[string]float64)
 
-	//for _, v := range otherBillData {
-	//	percent, _ := decimal.NewFromFloat(v/allCost * 100 ).Round(2).Float64()
-	//	tempData["cost"] = v
-	//	tempData["percent"] = percent
-	//
-	//}
-
 	tempData = otherBillData
 	resultData["detail"] = tempData
 	resultData["title"] = map[string]float64{"成本花费": cost, "生产花费": nonCost, "研发花费": otherCost, "总花费": allCost}
-	//logrus.Println("COST: ", cost, nonCost, otherCost, allCost)
-	//resultData["成本花费"] = cost
-	//resultData["生产花费"] = nonCost
-	//resultData["研发花费"] = otherCost
-	//resultData["总花费"] = allCost
-
-	//allCost, _ := decimal.NewFromFloat(allCost).Round(2).Float64()
 
 	// 计算数据 * 折扣率
 	if !isShare {
@@ -454,9 +440,7 @@ func CalculatePrediction() (map[string]map[string]map[string]float64, error) {
 
 // 预测数据计算V2
 func CalculatePredictionV2() (map[string]map[string]map[string]float64, error) {
-	//logrus.Println("开始...")
 	sellTypes := [2]string{"prepay", "postpay"} // 初始化账单纬度 预付费 后付费
-
 	dateData := billing.GetMonthDate()
 
 	shift := 1
@@ -473,8 +457,6 @@ func CalculatePredictionV2() (map[string]map[string]map[string]float64, error) {
 	}
 	tShift, _ := time.ParseDuration(fmt.Sprintf("%dh", -shift*24)) // 日期按偏移量 shift * 24小时做时间回归
 	EndTime := now.Add(tShift)                                     // 获取账单数据的时间日期，例如: 今天是 2021-06-23 10:00 以后，获取的2021-06-22之前账单
-	//logrus.Println("日期: ", thisMonthTotal, EndTime.Day())
-
 	thisMonthPredictionData := make(map[string]map[string]map[string]float64) // 定义预测数据存放结果map
 
 	// 获取账单所有名称和名称类别
@@ -549,8 +531,6 @@ func CalculatePredictionV2() (map[string]map[string]map[string]float64, error) {
 					}
 				}
 			}
-			//logrus.Println("当月产生金额总和: ", v, financePriceTotal)
-
 			// 查询上个月消费总和
 			lastMonthCostSum := 0.00
 			sourceMonth := fmt.Sprintf("%s_%s", dateData["lastMonthFirstDate"], dateData["lastMonthLastDate"])
@@ -590,26 +570,12 @@ func CalculatePredictionV2() (map[string]map[string]map[string]float64, error) {
 				thisMonthPredictionData[sellType][v]["Add"] = Add
 			}
 			if sellType == "prepay" {
-				//lastShareData, err := getLastMonthShareCost(strings.Replace(dateData["lastMonthFirstDate"], "-", "/", -1), apiNameBillNameMap[v])
-				//if err != nil {
-				//	return nil, err
-				//}
-				//for _, v := range lastShareData {
-				//	v1, err := strconv.ParseFloat(v.ShareCope, 64)
-				//	if err != nil {
-				//		return nil, err
-				//	}
-				//	v1, _ = decimal.NewFromFloat(v1).Round(2).Float64()
-				//	lastMonthCostSum = lastMonthCostSum + v1
-				//}
 				financePriceTotal, _ = decimal.NewFromFloat(financePriceTotal).Round(2).Float64()
 				thisMonthPredictionData[sellType][v]["Total"] = financePriceTotal
-
 				// message.NewPrinter(language.English).Sprintln(financePriceTotal) // 千位数打印
 			}
 		}
 	}
-
 	// 预测数据入库
 	err = prediction.InsertPrediction(thisMonthPredictionData)
 	if err != nil {

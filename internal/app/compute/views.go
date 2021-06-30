@@ -41,7 +41,6 @@ func getTexData(name string) (billing.SourceBillTex, error) {
 	var texData billing.SourceBillTex
 	_, err := mysql.Engine.Where("name = ?", name).Get(&texData)
 	return texData, err
-
 }
 
 // @Tags Compute API
@@ -72,14 +71,11 @@ func getBilling(c *gin.Context) {
 				})
 			} else {
 				tempD := make(map[string]map[string]float64, 0)
-				logrus.Println("DDDDDDDD: ", data)
 				for k, v := range data.Data["detail"] {
 					tempData := make(map[string]float64, 0)
-
 					percent, _ := decimal.NewFromFloat(v / data.Data["title"]["总花费"] * 100).Round(2).Float64()
 					tempData["cost"] = v
 					tempData["percent"] = percent
-
 					tempD[k] = tempData
 				}
 
@@ -95,9 +91,17 @@ func getBilling(c *gin.Context) {
 					"msg": err,
 				})
 			} else {
+				tempD := make(map[string]map[string]float64, 0)
+				for k, v := range data["detail"] {
+					tempData := make(map[string]float64, 0)
+					percent, _ := decimal.NewFromFloat(v / data["title"]["总花费"] * 100).Round(2).Float64()
+					tempData["cost"] = v
+					tempData["percent"] = percent
+					tempD[k] = tempData
+				}
 				c.JSON(http.StatusOK, gin.H{
 					"msg":  "success",
-					"data": data,
+					"data": tempD,
 				})
 			}
 		}
@@ -128,25 +132,10 @@ func getAllBilling(c *gin.Context) {
 			var tempX billing.BillDataResponse
 			tempX.Month = v.Month
 			tempX.IsShare = v.IsShare
-			//{"成本花费": cost, "生产花费": nonCost, "研发花费": otherCost, "总花费": allCost}
 			tempX.AllCost = v.Data["title"]["总花费"]
 			tempX.OtherCost = v.Data["title"]["研发花费"]
 			tempX.Cost = v.Data["title"]["成本花费"]
 			tempX.NoneCost = v.Data["title"]["生产花费"]
-			//for k, y := range v.Data {
-			//	if k == "allCost" {
-			//		tempX.AllCost = y
-			//	}
-			//	if k == "nonCost" {
-			//		tempX.NoneCost = y
-			//	}
-			//	if k == "otherCost" {
-			//		tempX.OtherCost = y
-			//	}
-			//	if k == "cost" {
-			//		tempX.Cost = y
-			//	}
-			//}
 			Data = append(Data, tempX)
 		}
 		logrus.Println("处理结果数据: ", Data)
@@ -222,8 +211,6 @@ func getAllPrediction(c *gin.Context) {
 		for x, y := range v.Data {
 			if x == "postpay" {
 				for _, z := range y {
-					//logrus.Println("ADD: ", z)
-					//Data.Cost = Data.Cost + z["Total"]
 					tempData.AddCost = tempData.AddCost + z["Add"]
 				}
 			}
@@ -234,10 +221,8 @@ func getAllPrediction(c *gin.Context) {
 			}
 		}
 		tempData.Cost = tempData.Cost + tempData.AddCost
-
 		tempData.Cost, _ = decimal.NewFromFloat(tempData.Cost).Round(2).Float64()
 		tempData.AddCost, _ = decimal.NewFromFloat(tempData.AddCost).Round(2).Float64()
-
 		Data = append(Data, tempData)
 	}
 
