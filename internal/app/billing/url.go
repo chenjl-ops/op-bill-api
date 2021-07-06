@@ -16,5 +16,6 @@ func Url(r *gin.Engine) {
 		v1.POST("tex", insertTexData)
 		v1.PUT("tex", updateTexData)
 		v1.DELETE("tex", deleteTexData)
+		v1.GET("dp_bill", getDpBill)
 	}
 }

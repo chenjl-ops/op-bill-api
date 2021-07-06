@@ -438,7 +438,7 @@ func CalculatePrediction() (map[string]map[string]map[string]float64, error) {
 	return thisMonthBudgetData, nil
 }
 
-// 预测数据计算V2
+// CalculatePredictionV2 预测数据计算V2
 func CalculatePredictionV2() (map[string]map[string]map[string]float64, error) {
 	sellTypes := [2]string{"prepay", "postpay"} // 初始化账单纬度 预付费 后付费
 	dateData := billing.GetMonthDate()
@@ -582,4 +582,159 @@ func CalculatePredictionV2() (map[string]map[string]map[string]float64, error) {
 		logrus.Println("预测数据入库失败: ", err)
 	}
 	return thisMonthPredictionData, nil
+}
+
+// CalculatePredictionV3 第三个版本预测，带当前花费信息，总花费信息，已经时间进度
+func CalculatePredictionV3() (map[string]map[string]map[string]float64, error) {
+	sellTypes := [2]string{"prepay", "postpay"} // 初始化账单纬度 预付费 后付费
+	dateData := billing.GetMonthDate()
+	// 获取月最后一天和获取账单日期时间点
+	thisMonthTotal, EndTime := getBillTime()
+
+	thisMonthPredictionData := make(map[string]map[string]map[string]float64) // 定义预测数据存放结果map
+	// 获取账单所有名称和名称类别
+	namesData, err := prediction.GetAllServiceAndName()
+
+	for _, sellType := range sellTypes {
+		thisMonthPredictionData[sellType] = make(map[string]map[string]float64)
+
+		for _, v := range namesData[sellType] {
+			// 获取baidu_bill_data内所有账单数据
+			billData, err := prediction.GetQueryBaiduBillData(v, sellType)
+			if err != nil {
+				return nil, err
+			}
+
+			// 当月已产生金额总和
+			financePriceTotal := 0.00
+
+			// 后付费直接按花费总和计算
+			if sellType == "postpay" {
+				for _, bill := range billData {
+					tempFinancePriceTotal := financePriceTotal + bill.FinancePrice/(float64(EndTime.Day())/float64(thisMonthTotal))
+					tempFinancePriceTotal, _ = decimal.NewFromFloat(tempFinancePriceTotal).Round(2).Float64()
+					financePriceTotal = tempFinancePriceTotal
+				}
+			} else {
+				// 预付费需要按分摊数据计算月花费
+				for _, bill := range billData {
+					// 获取非续费数据
+					if bill.OrderType != "RENEW" {
+						// 获取应付金额
+						tempFinancePrice := bill.FinancePrice
+						// 获取分摊时间 xx 天|xx 月|xx 年|/
+						duration := bill.Duration
+						// 设置偏移天数init
+						initShiftDay := 0
+						if duration != "/" {
+							tempDuration := strings.Split(duration, " ")
+							initShiftDay, err = strconv.Atoi(tempDuration[0])
+							if err != nil {
+								logrus.Println("获取月最后一天数据转换失败: ", err)
+							}
+
+							if tempDuration[1] == "年" {
+								// 年计费周期按 365天一年计算
+								initShiftDay = initShiftDay * 365
+							} else if tempDuration[1] == "月" {
+								// 计费周期为月 判断 是否为12个月 12个月为 365天周期，其他一律按 月*30 计算天周期
+								if tempDuration[0] == "12" {
+									initShiftDay = 365
+								} else {
+									initShiftDay = initShiftDay * 30
+								}
+							}
+						}
+						// 计算每天单价
+						tempDayUnitPrice := tempFinancePrice / float64(initShiftDay)
+
+						// 获取订单开始时间  2021-06-21T08:39:42Z
+						startDay := strings.Split(strings.Split(bill.StartTime, "T")[0], "-")
+						// 计算开始时间到月底一共多少天
+						tempStartDay, err := strconv.Atoi(startDay[len(startDay)-1])
+						if err != nil {
+							logrus.Println("获取账单开启时间异常: ", err)
+						}
+						// 计算资源开始时间到月底总天数
+						orderTimeRange := thisMonthTotal - tempStartDay
+						// 计算当月资源花费
+						tempFinancePriceTotal := financePriceTotal + (tempDayUnitPrice * float64(orderTimeRange))
+						tempFinancePriceTotal, _ = decimal.NewFromFloat(tempFinancePriceTotal).Round(2).Float64()
+						financePriceTotal = tempFinancePriceTotal
+					}
+				}
+			}
+			// 查询上个月消费总和
+			lastMonthCostSum := 0.00
+			sourceMonth := fmt.Sprintf("%s_%s", dateData["lastMonthFirstDate"], dateData["lastMonthLastDate"])
+
+			thisMonthPredictionData[sellType][v] = make(map[string]float64)
+			if sellType == "postpay" {
+				lastMonthSourceData, err := getLastMonthSourceCost(sourceMonth, apiNameBillNameMap[v], sellType)
+				if err != nil {
+					return nil, err
+				}
+				for _, v := range lastMonthSourceData {
+					v1, err := strconv.ParseFloat(v.OrderCost, 64)
+					if err != nil {
+						return nil, err
+					}
+					v1, _ = decimal.NewFromFloat(v1).Round(2).Float64()
+					lastMonthCostSum = lastMonthCostSum + v1
+				}
+
+				logrus.Println(v, lastMonthCostSum)
+
+				// 计算上个月花费总和折扣点
+				texData, err := getTexData(apiNameBillNameMap[v])
+				if err == nil {
+					lastMonthCostSum = lastMonthCostSum * texData.Tex
+				} else {
+					// 默认3.9折
+					lastMonthCostSum = lastMonthCostSum * 0.39
+				}
+
+				financePriceTotal, _ = decimal.NewFromFloat(financePriceTotal).Round(2).Float64()
+				lastMonthCostSum, _ = decimal.NewFromFloat(lastMonthCostSum).Round(2).Float64()
+
+				thisMonthPredictionData[sellType][v]["Total"] = financePriceTotal
+				thisMonthPredictionData[sellType][v]["LastMonthCost"] = lastMonthCostSum
+				Add, _ := decimal.NewFromFloat(financePriceTotal - lastMonthCostSum).Round(2).Float64()
+				thisMonthPredictionData[sellType][v]["Add"] = Add
+			}
+			if sellType == "prepay" {
+				financePriceTotal, _ = decimal.NewFromFloat(financePriceTotal).Round(2).Float64()
+				thisMonthPredictionData[sellType][v]["Total"] = financePriceTotal
+				// message.NewPrinter(language.English).Sprintln(financePriceTotal) // 千位数打印
+			}
+		}
+	}
+	// 预测数据入库
+	err = prediction.InsertPrediction(thisMonthPredictionData)
+	if err != nil {
+		logrus.Println("预测数据入库失败: ", err)
+	}
+	return thisMonthPredictionData, nil
+}
+
+// 获取当前时间偏移以及 获取账单的最后日期，例如 今天 2021-06-23 10:00后，获取的为 2021-06-22日期类型
+func getBillTime() (totalDay int, endTime time.Time) {
+	dateData := billing.GetMonthDate()
+
+	shift := 1
+	now := time.Now()
+	// 为了保证数据计算，百度建议10点以后 10点之前取两天前数据
+	if now.Hour() < 10 {
+		shift = 2
+	}
+
+	thisMonthL := strings.Split(dateData["thisMonthLastDate"], "-")    // 转换月最后一天日期为数组 例如: 2021-06-30 -> [2021,06,30]
+	thisMonthTotal, err := strconv.Atoi(thisMonthL[len(thisMonthL)-1]) // 获取最后一天日期 30 并转换成int
+	if err != nil {
+		logrus.Println("获取月最后一天数据转换失败: ", err)
+	}
+	tShift, _ := time.ParseDuration(fmt.Sprintf("%dh", -shift*24)) // 日期按偏移量 shift * 24小时做时间回归
+	EndTime := now.Add(tShift)
+
+	return thisMonthTotal, EndTime
 }

@@ -503,6 +503,17 @@ func getBillData(c *gin.Context) {
 	}
 }
 
+func getDpBill(c *gin.Context) {
+	month := c.DefaultQuery("month", "")
+
+	data := getDepartmentBill(month)
+	c.JSON(http.StatusOK, gin.H{
+		"msg": "success",
+		"data": data,
+	})
+
+}
+
 // 查看月首尾日期
 // @Tags Billing API
 // @Summary Select Month Data

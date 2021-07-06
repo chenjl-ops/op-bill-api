@@ -105,6 +105,7 @@ func RequestMethod(url string, method string, headers map[string]string, request
 			if err1 != nil {
 				return err1
 			}
+			defer resp.Body.Close()
 			return nil
 		}
 	} else {
